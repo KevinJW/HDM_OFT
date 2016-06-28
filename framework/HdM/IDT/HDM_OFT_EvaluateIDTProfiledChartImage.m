@@ -78,7 +78,9 @@ sRGBDeLinearize = @(x)((x>0.0031308).*(1.055.*x.^(1/2.4)-0.055)+(x<=0.0031308).*
 sRGBLinearize   = @(x)((x>0.04045).*((x+0.055)./1.055).^2.4+(x<=0.04045).*(x./12.92));
 
 figure('Name','original image')
-imshow(sRGBDeLinearize(double(OFT_ImageOriginalOrg)));
+if usejava('Desktop')
+	imshow(sRGBDeLinearize(double(OFT_ImageOriginalOrg)));
+end
 
 
 %% ///!!!white point scale
@@ -92,7 +94,9 @@ OFT_TransformedImage2ViewbScaled(:,:,3) = scaleB*(OFT_IDT_b(3)/min(OFT_IDT_b))*O
 
 %%
 figure('Name','white normalized image')
-imshow(sRGBDeLinearize(OFT_TransformedImage2ViewbScaled.*2.4));
+if usejava('Desktop')
+	imshow(sRGBDeLinearize(OFT_TransformedImage2ViewbScaled.*2.4));
+end
 
 %%
 
@@ -114,12 +118,16 @@ OFT_TransformedImage2ViewBConv(:,:,2) = OFT_MOverall(2,1)*OFT_TransformedImage2V
 OFT_TransformedImage2ViewBConv(:,:,3) = OFT_MOverall(3,1)*OFT_TransformedImage2ViewbScaled(:,:,1) + OFT_MOverall(3,2)*OFT_TransformedImage2ViewbScaled(:,:,2) + OFT_MOverall(3,3)*OFT_TransformedImage2ViewbScaled(:,:,3);
 
 figure('Name','matrix transformed white normalized image')
-imshow(sRGBDeLinearize(OFT_TransformedImage2ViewBConv.*2.4));
+if usejava('Desktop')
+	imshow(sRGBDeLinearize(OFT_TransformedImage2ViewBConv.*2.4));
+end
 
 %%
 figure
-subplot(1,2,1),imshow(sRGBDeLinearize(OFT_ImageOriginalOrg));
-subplot(1,2,2),imshow(sRGBDeLinearize(OFT_TransformedImage2ViewBConv.*0.28672));
+if usejava('Desktop')
+	subplot(1,2,1),imshow(sRGBDeLinearize(OFT_ImageOriginalOrg));
+	subplot(1,2,2),imshow(sRGBDeLinearize(OFT_TransformedImage2ViewBConv.*0.28672));
+end
 
 %%
 
@@ -133,7 +141,9 @@ if(isempty(OFT_cameraImageOfTestChart_PatchLocations))
     return ;
 end
 
-visualizecc(OFT_cameraImageOfTestChart,OFT_cameraImageOfTestChart_PatchLocations);
+if usejava('Desktop')
+	visualizecc(OFT_cameraImageOfTestChart,OFT_cameraImageOfTestChart_PatchLocations);
+end
 
 %scale for 100 base
 
