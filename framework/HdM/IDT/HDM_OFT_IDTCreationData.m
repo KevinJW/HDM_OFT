@@ -26,6 +26,7 @@ classdef HDM_OFT_IDTCreationData
         SpectralResponse_Out_SpectralResponseFile;
         
         IDTCreationConstraints_In_WhitePoint;
+        IDTCreationConstraints_In_SceneIllumination;
         IDTCreationConstraints_In_ErrorMinimizationDomain;
         IDTCreationConstraints_In_PatchSet;
         

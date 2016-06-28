@@ -5,6 +5,7 @@ function [OFT_IDT_File, OFT_IDT_B, OFT_IDT_b]=HDM_OFT_IDT_MinimumError...
     OFT_In_NeutralsCompensation, ...
     OFT_In_ErrorMinimizationDomain, ...
     OFT_In_IlluminantSpectrum,...
+    OFT_In_UsedIlluminantSpectrum,...
     OFT_In_ReferenceDomain,...
     OFT_In_StandardObserver)
 
@@ -55,6 +56,13 @@ else
     OFT_IlluminantSpectrum=OFT_In_IlluminantSpectrum;  
 end
 
+if(exist('OFT_In_UsedIlluminantSpectrum','var')==0 || isempty(OFT_In_UsedIlluminantSpectrum))
+    disp('using default neutral compensation');   
+    OFT_UsedIlluminantSpectrum='D55';    
+else
+    OFT_UsedIlluminantSpectrum=OFT_In_IlluminantSpectrum;  
+end
+
 if(exist('OFT_In_ReferenceDomain','var')==0)
     disp('using default reference domain');   
     OFT_ReferenceDomain=HDM_OFT_IDT_ReferenceCamera.CIEType();   
@@ -83,6 +91,7 @@ global gOFT_w;
 %% illuminat spectrum aquisition
 HDM_OFT_Utils.OFT_DispSubTitle('illuminat spectrum aquisition');
 OFT_Illuminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetIlluminantSpectrum(OFT_IlluminantSpectrum);
+OFT_UsedIlluminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetIlluminantSpectrum(OFT_UsedIlluminantSpectrum);
 
 %%patches spectrum aquisition
 %10 nm resolution
@@ -97,13 +106,13 @@ par4gOFT_w=gOFT_w;
 %% 4.7.2-4.7.4 reference tristimuli
 HDM_OFT_Utils.OFT_DispSubTitle('4.7.2 - 4.7.4 prepare reference tristumuli');
 [parOFT_PatchSetTristimuli_NeutralsCompensated,referenceWhite] = ComputeReferenceTristimuli4PatchSet...
-    (OFT_StandardObserver, HDM_OFT_GetIlluminantSpectrum('D50'),OFT_PatchSet_SpectralCurve,...%OFT_Illuminant_Spectrum_1nm_CIE31Range ,OFT_PatchSet_SpectralCurve,...//!!!
+    (OFT_StandardObserver, OFT_Illuminant_Spectrum_1nm_CIE31Range,OFT_PatchSet_SpectralCurve,...%HDM_OFT_GetIlluminantSpectrum('D50') ,OFT_PatchSet_SpectralCurve,...//!!! D50 for fix for test cause colorchecker Lab we have only for D50
     OFT_NeutralsCompensation, par4gOFT_w);
 
 %% 4.7.5 and 6 camera tristumuli
 HDM_OFT_Utils.OFT_DispSubTitle('4.7.5 and 6 prepare camera tristumuli');
 [parOFT_PatchSetCameraTristimuli, OFT_IDT_b] = ComputeCameraTristimuli4PatchSet...
-    (OFT_MeasuredCameraResponseFileName, OFT_In_PreLinearisationCurve, OFT_Illuminant_Spectrum_1nm_CIE31Range,OFT_PatchSet_SpectralCurve);
+    (OFT_MeasuredCameraResponseFileName, OFT_In_PreLinearisationCurve, OFT_UsedIlluminant_Spectrum_1nm_CIE31Range,OFT_PatchSet_SpectralCurve);
 
 % end
 % delete(gcp)
@@ -360,7 +369,9 @@ function [OFT_PatchSetCameraTristimuli, OFT_IDT_b] = ComputeCameraTristimuli4Pat
         HDM_OFT_Utils.OFT_DispSubTitle('search for test chart in image');
         OFT_cameraImageOfTestChartOrigin=HDM_OFT_ImageExportImport.ImportImage(OFT_MeasuredCameraResponseFileName, OFT_PreLinearisationCurve);
         
-        subplot(2,2,4) ,imshow(OFT_cameraImageOfTestChartOrigin);
+        if usejava('Desktop')
+        	subplot(2,2,4) ,imshow(OFT_cameraImageOfTestChartOrigin);
+        end
         
         OFT_cameraImageOfTestChart = double(OFT_cameraImageOfTestChartOrigin);
         [OFT_cameraImageOfTestChart_PatchLocations,OFT_cameraImageOfTestChart_PatchColours] = CCFind(OFT_cameraImageOfTestChart);

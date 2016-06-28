@@ -1,9 +1,3 @@
-// ARRI D21 IDT for D21 linear files
-// with camera EI set to n.n. ISO
-// camSPECS measured camera spectral sensitivity
-//
-// eye One Pro measured Gretag Macbeth Color Checker
-//
 // scene adopted white spectrum estimated via D polynome and set to Illuminant:
 %IDT_ILLUMINANT%
 //

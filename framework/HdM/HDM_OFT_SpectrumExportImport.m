@@ -7,7 +7,7 @@ classdef HDM_OFT_SpectrumExportImport
 
             HDM_OFT_Utils.OFT_DispTitle('import spectrum');
             
-            try
+            try %%uprtek
                 
             l_fid = fopen(i_spectrumFile);
             l_out = textscan(l_fid,'%s%s','delimiter','\t');
@@ -53,11 +53,14 @@ classdef HDM_OFT_SpectrumExportImport
                 
             end
                       
-                      
+            %% EyeOne
+            
             [l_p,l_n,l_ext]=fileparts(i_spectrumFile);
             
             if(strcmp(l_ext,'.xls') || strcmp(l_ext,'.xlsx'))
                 
+                try
+                    
                 [ndata, text, alldata] =xlsread(i_spectrumFile);
                 
                 if isempty(text)
@@ -76,16 +79,54 @@ classdef HDM_OFT_SpectrumExportImport
                 l_nmBase=360:1:830;
                 o_spectrum = [l_nmBase; interp1(o_spectrum(1,:), o_spectrum(2,:),l_nmBase,'pchip',0)];
                 
+                catch %%csv mimics excel but csv with non numeric data, which matlab does not support via csvread
+                    
+                    l_table = HDM_OFT_SpectrumExportImport.read_mixed_csv(i_spectrumFile, '\t');
+                    
+                    l_table(1, :) = cellfun(@(s) {strrep(s, 'nm', '')},l_table(1, :));
+                    l_table(1, :) = cellfun(@(s) {str2num(s)},l_table(1, :));
+                    l_table(2, :) = cellfun(@(s) {str2double(s)},l_table(2, :));
+                    
+                    o_spectrum = cell2mat([l_table(1, 2 : size(l_table, 2)); l_table(2, 2 : size(l_table, 2))]);
+                    
+                    l_nmBase=360:1:830;
+                    o_spectrum = [l_nmBase; interp1(o_spectrum(1,:), o_spectrum(2,:),l_nmBase,'pchip',0)];
+                    
+                end
+                
             else        
                 
                 l_csvData = csvread(i_spectrumFile);
-                
-                
-                
-                
+                                                              
             end
             
             
         end
+        
+        %%http://stackoverflow.com/questions/4747834/import-csv-file-with-mixed-data-types
+        function lineArray = read_mixed_csv(fileName,delimiter)
+          fid = fopen(fileName,'r');   %# Open the file
+          lineArray = cell(100,1);     %# Preallocate a cell array (ideally slightly
+                                       %#   larger than is needed)
+          lineIndex = 1;               %# Index of cell to place the next line in
+          nextLine = fgetl(fid);       %# Read the first line from the file
+          while ~isequal(nextLine,-1)         %# Loop while not at the end of the file
+            lineArray{lineIndex} = nextLine;  %# Add the line to the cell array
+            lineIndex = lineIndex+1;          %# Increment the line index
+            nextLine = fgetl(fid);            %# Read the next line from the file
+          end
+          fclose(fid);                 %# Close the file
+          lineArray = lineArray(1:lineIndex-1);  %# Remove empty cells, if needed
+          for iLine = 1:lineIndex-1              %# Loop over lines
+            lineData = textscan(lineArray{iLine},'%s',...  %# Read strings
+                                'Delimiter',delimiter);
+            lineData = lineData{1};              %# Remove cell encapsulation
+            if strcmp(lineArray{iLine}(end),delimiter)  %# Account for when the line
+              lineData{end+1} = '';                     %#   ends with a delimiter
+            end
+            lineArray(iLine,1:numel(lineData)) = lineData;  %# Overwrite line data
+          end
+        end
+        
     end
 end

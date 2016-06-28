@@ -84,6 +84,7 @@ OFT_ClientParamsDOM_In = OFT_ClientParamsDOM_Log.item(0).getElementsByTagName('I
 thisListitem = OFT_ClientParamsDOM_In.item(0);
 
 IDTTaskData.IDTCreationConstraints_In_WhitePoint=GetXMLNodeVal(thisListitem,'WhitePoint');
+IDTTaskData.IDTCreationConstraints_In_SceneIllumination=GetXMLNodeVal(thisListitem,'SceneIllumination');
 IDTTaskData.IDTCreationConstraints_In_ErrorMinimizationDomain=GetXMLNodeVal(thisListitem,'ErrorMinimizationDomain');
 IDTTaskData.IDTCreationConstraints_In_PatchSet=GetXMLNodeVal(thisListitem,'PatchSet');  
 
@@ -119,7 +120,8 @@ try
 thisList = thisListitem.getElementsByTagName(nodeName);
 retVal=char(thisList.item(0).getFirstChild.getData);
 catch
-    error('Unable to parse XML Node %s.',nodeName);    
+    %%!!! error('Unable to parse XML Node %s.',nodeName);  
+    retVal = '';
 end
 
 end

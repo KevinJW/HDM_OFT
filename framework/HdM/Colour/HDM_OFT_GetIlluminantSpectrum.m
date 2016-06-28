@@ -13,7 +13,8 @@ if(isempty(strfind(OFT_IlluminantSpectrum,'.')))
         otherwise
     end
 else
-    OFT_Illuminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetCIERange1nmSpectrumFromSpectralDataFile(OFT_IlluminantSpectrum);
+    %OFT_Illuminant_Spectrum_1nm_CIE31Range = HDM_OFT_GetCIERange1nmSpectrumFromSpectralDataFile(OFT_IlluminantSpectrum);
+    OFT_Illuminant_Spectrum_1nm_CIE31Range = HDM_OFT_SpectrumExportImport.ImportSpectrum(OFT_IlluminantSpectrum);
 end
 
 out=OFT_Illuminant_Spectrum_1nm_CIE31Range;

@@ -32,13 +32,47 @@ HDM_OFT_Utils.OFT_DispSubTitle('read spectrometer data');
 
 l_IntenityAgainstWavelength = HDM_OFT_SpectrumExportImport.ImportSpectrum(OFT_In_SpectrometerMeasurement);
 
+% //!!! to be discussed for noisy uprtec data 
+window = 10;
+h = ones(window,1)/window;
+l_IntenityAgainstWavelength2 = l_IntenityAgainstWavelength;
+
+for cur = 5 : size(l_IntenityAgainstWavelength2, 2) - 5
+    
+    l_nonZeroCnt = 0;
+    l_sum = 0;
+    
+    for innerCur = cur - 4 : cur + 4
+        
+        if(l_IntenityAgainstWavelength(2, innerCur) > 0)
+            
+            l_nonZeroCnt = l_nonZeroCnt + 1;
+            
+            l_sum = l_sum + l_IntenityAgainstWavelength(2, innerCur);
+            
+        end
+        
+    end
+    
+    if (l_sum>0 && l_nonZeroCnt>0)
+        
+        l_IntenityAgainstWavelength2(2, cur) = l_sum / l_nonZeroCnt;
+    
+    end
+         
+end
+
+l_IntenityAgainstWavelength = l_IntenityAgainstWavelength2;
+
 figure
 subplot(2,2,1)
-plot(l_IntenityAgainstWavelength(1,:),l_IntenityAgainstWavelength(2,:))
+plot(l_IntenityAgainstWavelength(1,:),l_IntenityAgainstWavelength(2,:), ...
+    l_IntenityAgainstWavelength2(1,:),l_IntenityAgainstWavelength2(2,:))
 xlabel('wavelength in nm')
 ylabel('intensity in W/(nm * m^2)')
 title('tungsten light spectrum measured by reference spectrometer');
 
+% //!!! l_IntenityAgainstWavelength = l_IntenityAgainstWavelength2;
 
 %% read camera line spectrum image
 HDM_OFT_Utils.OFT_DispSubTitle('read camera line spectrum image');
@@ -73,8 +107,13 @@ for i = 1:regionsCount
 
 end
 
-% l_boundingBox4MaxArea(2) = l_boundingBox4MaxArea(2) + 0.2 * l_boundingBox4MaxArea(4);
-% l_boundingBox4MaxArea(4) = 0.6 * l_boundingBox4MaxArea(4);
+%% change mask dimensions
+
+l_boundingBox4MaxArea(1) = l_boundingBox4MaxArea(1) - 0.5 * l_boundingBox4MaxArea(3);
+l_boundingBox4MaxArea(3) = 2 * l_boundingBox4MaxArea(3);
+
+l_boundingBox4MaxArea(2) = l_boundingBox4MaxArea(2) + 0.1 * l_boundingBox4MaxArea(4);
+l_boundingBox4MaxArea(4) = l_boundingBox4MaxArea(4) - 0.2 * l_boundingBox4MaxArea(4);
 
 %% apply mask
 
@@ -84,7 +123,13 @@ OFT_SpectrumImage(round(l_boundingBox4MaxArea(2) + l_boundingBox4MaxArea(4)) : s
 OFT_SpectrumImage(:, 1:round(l_boundingBox4MaxArea(1)), :) = 0;
 OFT_SpectrumImage(:, round(l_boundingBox4MaxArea(1) + l_boundingBox4MaxArea(3)) : size(OFT_SpectrumImage, 2), :) = 0;
 
-OFT_SpectrumImage=HDM_OFT_Cos4Correction(OFT_SpectrumImage,OFT_In_FocalLength,OFT_In_Sensor);%//!!!
+%% median filtering
+
+OFT_SpectrumImage(:,:,1) = medfilt2(OFT_SpectrumImage(:,:,1));
+OFT_SpectrumImage(:,:,2) = medfilt2(OFT_SpectrumImage(:,:,2));
+OFT_SpectrumImage(:,:,3) = medfilt2(OFT_SpectrumImage(:,:,3));
+
+%//!!! OFT_SpectrumImage=HDM_OFT_Cos4Correction(OFT_SpectrumImage,OFT_In_FocalLength,OFT_In_Sensor);%//!!!
 [OFT_SpectrumImageHeight, OFT_SpectrumImageWidth,OFT_SpectrumImageNofChannels]=size(OFT_SpectrumImage);
 
 OFT_VCenterPos = round(l_boundingBox4MaxArea(1,2) + (l_boundingBox4MaxArea(1, 4)/2));
@@ -104,86 +149,12 @@ end
 
 if usejava('Desktop')
 	subplot(2,2,2),imshow(OFT_SpectrumImage);
+    
+    l_subImage = imcrop(OFT_SpectrumImage, l_boundingBox4MaxArea);   
+    subplot(2,2,3),imshow(l_subImage);
+    
 end
 
-% obsolete
-% OFT_SpectrumImageLowResScale=0.25;
-% %//!!!OFT_SpectrumImageIntensity=im2bw(imresize(OFT_SpectrumImage,OFT_SpectrumImageLowResScale),0.1);%//!!!
-% image_resized=imresize(OFT_SpectrumImage,OFT_SpectrumImageLowResScale);
-% 
-% bwimg=zeros(size(image_resized,1),size(image_resized,2));
-% 
-% for l=1:size(image_resized,1)
-% 
-%     for m=1:size(image_resized,2)
-% 
-%         if(sum(image_resized(l,m,:))>0.1*3)
-% 
-%             bwimg(l,m)=1;
-% 
-%         end
-% 
-%     end
-% 
-% end
-% 
-% OFT_SpectrumImageIntensity=bwimg;
-% 
-% 
-% [OFT_SpectrumImageHeight, OFT_SpectrumImageWidth,OFT_SpectrumImageNofChannels]=size(OFT_SpectrumImage);
-% [OFT_SpectrumImageIntensityHeight, OFT_SpectrumImageIntensityWidth,OFT_SpectrumImageIntensityNofChannels]=size(OFT_SpectrumImageIntensity);
-% 
-% subplot(2,2,2),imshow(OFT_SpectrumImage);
-% %improfile
-% OFT_SpectrumROI_Top=0;
-% OFT_SpectrumROI_Bottom=OFT_SpectrumImageIntensityHeight;
-% 
-% for R=10:OFT_SpectrumImageIntensityHeight-10
-%     [WMaxCur,WMaxIndCur]=max(OFT_SpectrumImageIntensity(R,:));
-%     if (WMaxCur>0 && WMaxIndCur>100)
-%         OFT_SpectrumROI_Top=R/OFT_SpectrumImageLowResScale;
-%         break;
-%     end
-% %     pixel=OFT_SpectrumImageIntensity(R,OFT_SpectrumImageIntensityWidth/2-5);%//!!!
-% %     if pixel>0
-% %         OFT_SpectrumROI_Top=R/OFT_SpectrumImageLowResScale;
-% %         break;
-% %     end
-% end
-% 
-% for R=OFT_SpectrumImageIntensityHeight-10:-1:10
-%     [WMaxCur,WMaxIndCur]=max(OFT_SpectrumImageIntensity(R,:));
-%     if (WMaxCur>0 && WMaxIndCur>100)
-%         OFT_SpectrumROI_Bottom=R/OFT_SpectrumImageLowResScale;
-%         break;
-%     end
-% %     pixel=OFT_SpectrumImageIntensity(R,OFT_SpectrumImageIntensityWidth/2-5);%//!!!
-% %     if pixel>0
-% %         OFT_SpectrumROI_Bottom=R/OFT_SpectrumImageLowResScale;
-% %         break;
-% %     end
-% end
-% 
-% [WMax,WMaxInd]=max(OFT_SpectrumImage(OFT_VCenterPos,:));
-% 
-% for R=10:OFT_SpectrumImageHeight-10  
-%     [GMax2,GMaxInd2]=max(OFT_SpectrumImage(R,:,2));
-%     if GMax2(1)>0.5*OFT_GlobalMax
-%         OFT_SpectrumROI_Top=R;
-%         break;
-%     end
-% end
-% 
-% for R=OFT_SpectrumImageHeight-10:-1:10
-%     [GMax3,GMaxInd3]=max(OFT_SpectrumImage(R,:,2));
-%     if GMax3(1)>0.5*OFT_GlobalMax
-%         OFT_SpectrumROI_Bottom=R;
-%         break;
-%     end
-% end
-% 
-% subplot(2,2,3),imshow(OFT_SpectrumImageIntensity);
-% end obsolete
 
 OFT_Center = OFT_VCenterPos;
 
@@ -207,7 +178,9 @@ OFT_SpectrumImagePixelColumnIndex=1:OFT_SpectrumImageWidth;
 
 subplot(2,2,4)
 plot...
-    (OFT_SpectrumImagePixelColumnIndex,OFT_Spectrum_MeanOfRows(1,:,3),OFT_SpectrumImagePixelColumnIndex,OFT_Spectrum_MeanOfRows(1,:,2),OFT_SpectrumImagePixelColumnIndex,OFT_Spectrum_MeanOfRows(1,:,1));
+    (OFT_SpectrumImagePixelColumnIndex,OFT_Spectrum_MeanOfRows(1,:,3),...
+    OFT_SpectrumImagePixelColumnIndex,OFT_Spectrum_MeanOfRows(1,:,2),...
+    OFT_SpectrumImagePixelColumnIndex,OFT_Spectrum_MeanOfRows(1,:,1));
 legend({'b','g','r'})
 xlabel('horicontal pixel index')
 ylabel('mean pixel value of all lines')
@@ -233,30 +206,46 @@ OFT_Spectrum_MeanOfRowsBlue_nmSamples=...
     min(l_IntenityAgainstWavelength(1,:)):l_IntenityAgainstWavelength(1,2)-l_IntenityAgainstWavelength(1,1):max(l_IntenityAgainstWavelength(1,:)),...
     'linear');
 
-% OFT_Spectrum_MeanOfRowsRed_nmSamples=OFT_Spectrum_MeanOfRowsRed_nmSamples./max(OFT_Spectrum_MeanOfRowsGreen_nmSamples);
-% OFT_Spectrum_MeanOfRowsGreen_nmSamples=OFT_Spectrum_MeanOfRowsGreen_nmSamples./max(OFT_Spectrum_MeanOfRowsGreen_nmSamples);
-% OFT_Spectrum_MeanOfRowsBlue_nmSamples=OFT_Spectrum_MeanOfRowsBlue_nmSamples./max(OFT_Spectrum_MeanOfRowsGreen_nmSamples);
+OFT_Spectrum_MeanOfRowsRed_nmSamplesCam = OFT_Spectrum_MeanOfRowsRed_nmSamples;
+OFT_Spectrum_MeanOfRowsGreen_nmSamplesCam = OFT_Spectrum_MeanOfRowsGreen_nmSamples;
+OFT_Spectrum_MeanOfRowsBlue_nmSamplesCam = OFT_Spectrum_MeanOfRowsBlue_nmSamples;
 
-OFT_Spectrum_MeanOfRowsRed_nmSamplesCam=OFT_Spectrum_MeanOfRowsRed_nmSamples;
-OFT_Spectrum_MeanOfRowsGreen_nmSamplesCam=OFT_Spectrum_MeanOfRowsGreen_nmSamples;
-OFT_Spectrum_MeanOfRowsBlue_nmSamplesCam=OFT_Spectrum_MeanOfRowsBlue_nmSamples;
+l_maxGreen = max(OFT_Spectrum_MeanOfRowsGreen_nmSamplesCam);
+OFT_Spectrum_MeanOfRowsRed_nmSamplesCam = OFT_Spectrum_MeanOfRowsRed_nmSamplesCam ./ l_maxGreen;
+OFT_Spectrum_MeanOfRowsGreen_nmSamplesCam = OFT_Spectrum_MeanOfRowsGreen_nmSamplesCam ./ l_maxGreen;
+OFT_Spectrum_MeanOfRowsBlue_nmSamplesCam = OFT_Spectrum_MeanOfRowsBlue_nmSamplesCam ./ l_maxGreen;
 
-OFT_NormalizedLight=l_IntenityAgainstWavelength(2,:)/max(l_IntenityAgainstWavelength(2,:))
-OFT_tmp=OFT_NormalizedLight./OFT_NormalizedLight;
-OFT_NormalizedLightCorrectionTmp=OFT_tmp./OFT_NormalizedLight;
-OFT_NormalizedLightCorrection=OFT_NormalizedLightCorrectionTmp/max(OFT_NormalizedLightCorrectionTmp);
+OFT_NormalizedLight = l_IntenityAgainstWavelength(2,:)/max(l_IntenityAgainstWavelength(2,:));
+OFT_NormalizedLightCorrection = OFT_NormalizedLight;
+for cur = 1 : size(OFT_NormalizedLightCorrection, 2)
+    
+    if (OFT_NormalizedLight(1, cur) > 0)
+        
+        OFT_NormalizedLightCorrection(1, cur) = 1/OFT_NormalizedLight(1, cur);
+        
+    end
 
-% OFT_Spectrum_MeanOfRowsRed_nmSamples=min(OFT_IntenityAgainstWavelength(2,:))*OFT_Spectrum_MeanOfRowsRed_nmSamples./OFT_IntenityAgainstWavelength(2,:);
-% OFT_Spectrum_MeanOfRowsGreen_nmSamples=min(OFT_IntenityAgainstWavelength(2,:))*OFT_Spectrum_MeanOfRowsGreen_nmSamples./OFT_IntenityAgainstWavelength(2,:);
-% OFT_Spectrum_MeanOfRowsBlue_nmSamples=min(OFT_IntenityAgainstWavelength(2,:))*OFT_Spectrum_MeanOfRowsBlue_nmSamples./OFT_IntenityAgainstWavelength(2,:);
+end
+OFT_NormalizedLightCorrection=OFT_NormalizedLightCorrection ./ max(OFT_NormalizedLightCorrection);
 
 OFT_Spectrum_MeanOfRowsRed_nmSamples=OFT_Spectrum_MeanOfRowsRed_nmSamples.*OFT_NormalizedLightCorrection;
 OFT_Spectrum_MeanOfRowsGreen_nmSamples=OFT_Spectrum_MeanOfRowsGreen_nmSamples.*OFT_NormalizedLightCorrection;
 OFT_Spectrum_MeanOfRowsBlue_nmSamples=OFT_Spectrum_MeanOfRowsBlue_nmSamples.*OFT_NormalizedLightCorrection;
 
-% OFT_Spectrum_MeanOfRowsRed_nmSamples=OFT_Spectrum_MeanOfRowsRed_nmSamples./max(OFT_Spectrum_MeanOfRowsGreen_nmSamples);
-% OFT_Spectrum_MeanOfRowsGreen_nmSamples=OFT_Spectrum_MeanOfRowsGreen_nmSamples./max(OFT_Spectrum_MeanOfRowsGreen_nmSamples);
-% OFT_Spectrum_MeanOfRowsBlue_nmSamples=OFT_Spectrum_MeanOfRowsBlue_nmSamples./max(OFT_Spectrum_MeanOfRowsGreen_nmSamples);
+l_maxGreen = max(OFT_Spectrum_MeanOfRowsGreen_nmSamples);
+OFT_Spectrum_MeanOfRowsRed_nmSamples = OFT_Spectrum_MeanOfRowsRed_nmSamples ./ l_maxGreen;
+OFT_Spectrum_MeanOfRowsGreen_nmSamples = OFT_Spectrum_MeanOfRowsGreen_nmSamples ./ l_maxGreen;
+OFT_Spectrum_MeanOfRowsBlue_nmSamples = OFT_Spectrum_MeanOfRowsBlue_nmSamples ./ l_maxGreen;
+
+figure ('Name','light and light correction')
+plot...
+    (l_IntenityAgainstWavelength(1,:),OFT_NormalizedLight(1,:),...
+    l_IntenityAgainstWavelength(1,:),OFT_NormalizedLightCorrection(1,:));
+legend({'normalized SPD of Tungsten light', 'light correction curve'})
+xlabel('wavelength in nm')
+ylabel('relative radiance')
+grid on
+grid minor
 
 figure ('Name','response uncorrected and light corrected')
 plot...
@@ -265,32 +254,67 @@ plot...
     l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsRed_nmSamples,...
     l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsBlue_nmSamplesCam,...
     l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsGreen_nmSamplesCam,...
-    l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsRed_nmSamplesCam,...
-    l_IntenityAgainstWavelength(1,:),OFT_NormalizedLight(1,:),...
-    l_IntenityAgainstWavelength(1,:),OFT_NormalizedLightCorrection(1,:));
-% hold on
-% plot...
-%     (OFT_In_Pixel2WavelengthLookUp,OFT_Spectrum_MeanOfRows(1,:,3)/max(OFT_Spectrum_MeanOfRows(1,:,2)),'--',...
-%     OFT_In_Pixel2WavelengthLookUp,OFT_Spectrum_MeanOfRows(1,:,2)/max(OFT_Spectrum_MeanOfRows(1,:,2)),'--',...
-%     OFT_In_Pixel2WavelengthLookUp,OFT_Spectrum_MeanOfRows(1,:,1)/max(OFT_Spectrum_MeanOfRows(1,:,2)),'--');
-legend({'b','g','r','light'})
+    l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsRed_nmSamplesCam);
+legend({'b light corrected','g light corrected','r light corrected','b from CAM','g from CAM','r from CAM'})
 xlabel('wavelength in nm')
-ylabel('green normalized pixel value of all lines (light corrected)')
+ylabel('pixel value of all lines')
 grid on
 grid minor
 
-%//!!!obsolete OFT_GridTransmission=csvread(strcat(OFT_Env.OFT_ConstraintsPath,'/GridFoilTransmission06052014Tungsten3400K.txt'));
-%//!!!obsolete OFT_GridTransmission_Relative=OFT_GridTransmission(3,:)./OFT_GridTransmission(2,:)/(max(OFT_GridTransmission(3,:))/max(OFT_GridTransmission(2,:)));
-%//!!!OFT_GridTransmission_Correction=1./OFT_GridTransmission_Relative;
-
 [oft_ndata, oft_text, oft_alldata] =xlsread(strcat(OFT_Env.OFT_ConstraintsPath,'/RuledGratingEfficiency.xlsx'));
 OFT_GridTransmission=oft_ndata;
-nmBase=360:1:830;
-OFT_GridTransmissionNormIntensity=interp1(OFT_GridTransmission(1,:), OFT_GridTransmission(2,:),360:1:830,'pchip','extrap');
-OFT_GridTransmissionNormIntensity=1/max(OFT_GridTransmissionNormIntensity)*OFT_GridTransmissionNormIntensity;
-OFT_GridTransmissionNormIntensity_LUT = [nmBase;OFT_GridTransmissionNormIntensity];
+
+l_lowerValidWavelength = 360;
+l_upperValidWavelength = 830;
+
+for cur = 2 : size(l_IntenityAgainstWavelength, 2) - 1
+    
+    if (l_IntenityAgainstWavelength(2, cur) > 0 && l_IntenityAgainstWavelength(2, cur - 1) == 0)
+        
+        l_lowerValidWavelength = l_IntenityAgainstWavelength(1, cur);
+        
+    end
+    
+    if (l_IntenityAgainstWavelength(2, cur) == 0 && l_IntenityAgainstWavelength(2, cur - 1) > 0)
+        
+        l_upperValidWavelength = l_IntenityAgainstWavelength(1, cur);
+        
+    end
+    
+end
+
+l_nmBase = 360 : 1 : 830;
+OFT_GridTransmissionNormIntensity=interp1(OFT_GridTransmission(1,:), OFT_GridTransmission(2,:), 360 : 1 : 830, 'pchip', 'extrap');
+
+l_norm = 1;
+for cur = 1 : size(l_nmBase, 2)
+    
+    if(l_nmBase(1, cur) > l_upperValidWavelength)
+        
+        l_norm = OFT_GridTransmissionNormIntensity(1, cur-1);
+        break;
+        
+    end
+    
+end    
+
+OFT_GridTransmissionNormIntensity=1/l_norm*OFT_GridTransmissionNormIntensity;
+
 OFT_GridTransmission_Correction=1./OFT_GridTransmissionNormIntensity;
-OFT_GridTransmission_Relative=OFT_GridTransmissionNormIntensity;
+
+l_norm = 1;
+for cur = 1 : size(l_nmBase, 2)
+    
+    if(l_nmBase(1, cur) > l_upperValidWavelength)
+        
+        l_norm = OFT_GridTransmission_Correction(1, cur-1);
+        break;
+        
+    end
+    
+end   
+
+OFT_GridTransmission_Correction = OFT_GridTransmission_Correction ./ l_norm;
 
 OFT_Spectrum_MeanOfRowsRed_nmSamplesLight=OFT_Spectrum_MeanOfRowsRed_nmSamples;
 OFT_Spectrum_MeanOfRowsGreen_nmSamplesLight=OFT_Spectrum_MeanOfRowsGreen_nmSamples;
@@ -300,21 +324,45 @@ OFT_Spectrum_MeanOfRowsRed_nmSamples=OFT_GridTransmission_Correction.*OFT_Spectr
 OFT_Spectrum_MeanOfRowsGreen_nmSamples=OFT_GridTransmission_Correction.*OFT_Spectrum_MeanOfRowsGreen_nmSamples;
 OFT_Spectrum_MeanOfRowsBlue_nmSamples=OFT_GridTransmission_Correction.*OFT_Spectrum_MeanOfRowsBlue_nmSamples;%//!!! 0.9
 
-figure ('Name','response uncorrected and grating corrected')
+l_maxGreen = max(OFT_Spectrum_MeanOfRowsGreen_nmSamples);
+OFT_Spectrum_MeanOfRowsRed_nmSamples = OFT_Spectrum_MeanOfRowsRed_nmSamples ./ l_maxGreen;
+OFT_Spectrum_MeanOfRowsGreen_nmSamples = OFT_Spectrum_MeanOfRowsGreen_nmSamples ./ l_maxGreen;
+OFT_Spectrum_MeanOfRowsBlue_nmSamples = OFT_Spectrum_MeanOfRowsBlue_nmSamples ./ l_maxGreen;
+
+
+figure ('Name','normalized grating efficiency and grating correction')
+plot...
+    (l_IntenityAgainstWavelength(1,:),OFT_GridTransmissionNormIntensity(1,:),...
+    l_IntenityAgainstWavelength(1,:),OFT_GridTransmission_Correction(1,:))
+legend({'normalized grating efficiency', 'grating correction'})
+xlabel('wavelength in nm')
+ylabel('normalized efficiency and correction')
+grid on
+grid minor
+
+l_lightAndGratingCorrection = OFT_NormalizedLightCorrection .* OFT_GridTransmission_Correction;
+l_lightAndGratingCorrection = l_lightAndGratingCorrection ./ max(l_lightAndGratingCorrection);
+
+figure ('Name','grating and light correction')
+plot...
+    (l_IntenityAgainstWavelength(1,:), OFT_NormalizedLightCorrection, ...
+    l_IntenityAgainstWavelength(1,:), OFT_GridTransmission_Correction, ...
+    l_IntenityAgainstWavelength(1,:), l_lightAndGratingCorrection)
+legend({'light correction', 'grating correction', 'light and grating correction'})
+xlabel('wavelength in nm')
+ylabel('correction factor')
+grid on
+grid minor
+
+figure ('Name','response light corrected and grating corrected')
 plot...
     (l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsBlue_nmSamples,...
     l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsGreen_nmSamples,...
     l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsRed_nmSamples,...
     l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsBlue_nmSamplesLight,...
     l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsGreen_nmSamplesLight,...
-    l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsRed_nmSamplesLight,...
-    l_IntenityAgainstWavelength(1,:),OFT_GridTransmission_Correction)
-% hold on
-% plot...
-%     (OFT_In_Pixel2WavelengthLookUp,OFT_Spectrum_MeanOfRows(1,:,3)/max(OFT_Spectrum_MeanOfRows(1,:,2)),'--',...
-%     OFT_In_Pixel2WavelengthLookUp,OFT_Spectrum_MeanOfRows(1,:,2)/max(OFT_Spectrum_MeanOfRows(1,:,2)),'--',...
-%     OFT_In_Pixel2WavelengthLookUp,OFT_Spectrum_MeanOfRows(1,:,1)/max(OFT_Spectrum_MeanOfRows(1,:,2)),'--');
-legend({'b','g','r','light'})
+    l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsRed_nmSamplesLight)
+legend({'b grating corrected','g grating corrected','r grating corrected','b light corrected','g light corrected','r light corrected'})
 xlabel('wavelength in nm')
 ylabel('green normalized pixel value of all lines (grating corrected)')
 grid on
@@ -330,18 +378,13 @@ plot...
     (l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsBlue_nmSamples/max(OFT_Spectrum_MeanOfRowsGreen_nmSamples),...
     l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsGreen_nmSamples/max(OFT_Spectrum_MeanOfRowsGreen_nmSamples),...
     l_IntenityAgainstWavelength(1,:),OFT_Spectrum_MeanOfRowsRed_nmSamples/max(OFT_Spectrum_MeanOfRowsGreen_nmSamples))
-% hold on
-% plot...
-%     (OFT_In_Pixel2WavelengthLookUp,OFT_Spectrum_MeanOfRows(1,:,3)/max(OFT_Spectrum_MeanOfRows(1,:,2)),'--',...
-%     OFT_In_Pixel2WavelengthLookUp,OFT_Spectrum_MeanOfRows(1,:,2)/max(OFT_Spectrum_MeanOfRows(1,:,2)),'--',...
-%     OFT_In_Pixel2WavelengthLookUp,OFT_Spectrum_MeanOfRows(1,:,1)/max(OFT_Spectrum_MeanOfRows(1,:,2)),'--');
 legend({'b','g','r','grid efficency'})
 xlabel('wavelength in nm')
 ylabel('green normalized pixel value of all lines (phase grid transmission corrected)')
 grid on
 grid minor
 
-% one line for noise
+% for test: show one line for noise evaluation
 % plot...
 % 	(OFT_SpectrumImagePixelColumnIndex,OFT_SpectrumImage(OFT_SpectrumROI_Top+(OFT_SpectrumROI_Bottom-OFT_SpectrumROI_Top)/2,1:OFT_SpectrumImageWidth,1),'r',...
 %     OFT_SpectrumImagePixelColumnIndex,OFT_SpectrumImage(OFT_SpectrumROI_Top+(OFT_SpectrumROI_Bottom-OFT_SpectrumROI_Top)/2,1:OFT_SpectrumImageWidth,2),'g',...
@@ -352,16 +395,13 @@ grid minor
 % xlabel('horicontal pixel index')
 % ylabel('red pixel value of center line')
 
-
 out=OFT_Out_SpectralResponse;
 
 HDM_OFT_Utils.OFT_DispTitle('light calibration succesfully finished');
 
 end
 
-
-
-%//!!!
+%//!!! open source functions if avoiding matlab image toolbox usage
 
 function [rout,g,b] = imresize(varargin)
 %IMRESIZE Resize image.
