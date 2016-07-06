@@ -112,7 +112,7 @@ HDM_OFT_Utils.OFT_DispSubTitle('4.7.2 - 4.7.4 prepare reference tristumuli');
 %% 4.7.5 and 6 camera tristumuli
 HDM_OFT_Utils.OFT_DispSubTitle('4.7.5 and 6 prepare camera tristumuli');
 [parOFT_PatchSetCameraTristimuli, OFT_IDT_b] = ComputeCameraTristimuli4PatchSet...
-    (OFT_MeasuredCameraResponseFileName, OFT_In_PreLinearisationCurve, OFT_UsedIlluminant_Spectrum_1nm_CIE31Range,OFT_PatchSet_SpectralCurve);
+    (OFT_MeasuredCameraResponseFileName, OFT_In_PreLinearisationCurve, OFT_UsedIlluminant_Spectrum_1nm_CIE31Range, OFT_Illuminant_Spectrum_1nm_CIE31Range, OFT_PatchSet_SpectralCurve);
 
 % end
 % delete(gcp)
@@ -257,7 +257,7 @@ OFT_PatchSetReferenceTristimuli=...
 end
 
 function [OFT_PatchSetCameraTristimuli, OFT_IDT_b] = ComputeCameraTristimuli4PatchSet...
-    (OFT_MeasuredCameraResponseFileName, OFT_PreLinearisationCurve, OFT_Illuminant_Spectrum_1nm_CIE31Range, OFT_PatchSet_SpectralCurve)
+    (OFT_MeasuredCameraResponseFileName, OFT_PreLinearisationCurve, OFT_Illuminant_Spectrum_1nm_CIE31Range, OFT_TargetIlluminant_Spectrum_1nm_CIE31Range, OFT_PatchSet_SpectralCurve)
 
     %not aequidistant
 
@@ -326,43 +326,27 @@ function [OFT_PatchSetCameraTristimuli, OFT_IDT_b] = ComputeCameraTristimuli4Pat
         OFT_CAM_YwE=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(3,:));
         OFT_CAM_ZwE=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(4,:));
 
-        OFT_CAM_Xw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(2,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:));
-        OFT_CAM_Yw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(3,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:));
-        OFT_CAM_Zw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(4,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:));
+        OFT_CAM_Xw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(2,:) .* OFT_TargetIlluminant_Spectrum_1nm_CIE31Range(2,:));
+        OFT_CAM_Yw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(3,:) .* OFT_TargetIlluminant_Spectrum_1nm_CIE31Range(2,:));
+        OFT_CAM_Zw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(4,:) .* OFT_TargetIlluminant_Spectrum_1nm_CIE31Range(2,:));
 
-        OFT_CAM_WwUnscaled=[OFT_CAM_Xw;OFT_CAM_Yw;OFT_CAM_Zw]
-        OFT_CAM_Ww=100*(OFT_CAM_WwUnscaled./OFT_CAM_WwUnscaled(2));
-
-        OFT_IDT_bScaled=OFT_CAM_Ww./min(OFT_CAM_Ww);
+        OFT_CAM_WwUnscaled = [OFT_CAM_Xw;OFT_CAM_Yw;OFT_CAM_Zw];
 
         %% 4.7.6 compute white balanced linearized camera system response values of
         %%training colours
         HDM_OFT_Utils.OFT_DispTitle('4.7.6 compute white balanced linearized camera system response values of training colours');
         [OFT_PatchSetCameraTristimuli,OFT_PatchSetCameraTristimuli_ColorValueParts]=...
                 HDM_OFT_TristimuliCreator.CreateFromSpectrum(...
-                        OFT_CameraSpectralResponse_1nm_CIE31Range,...%//!!!
+                        OFT_CameraSpectralResponse_1nm_CIE31Range,...
                         OFT_Illuminant_Spectrum_1nm_CIE31Range,...
                         OFT_PatchSet_SpectralCurve);
          
         
-        OFT_PatchSetCameraTristimuli2=OFT_PatchSetCameraTristimuli;       
-        OFT_IDT_bFromWPatch=OFT_PatchSetCameraTristimuli(:,19);
+        OFT_IDT_b=1./OFT_CAM_WwUnscaled;
+        OFT_PatchSetCameraTristimuli3 = OFT_PatchSetCameraTristimuli;
+        OFT_PatchSetCameraTristimuliW = OFT_PatchSetCameraTristimuli3 .* repmat(OFT_IDT_b,[1,size(OFT_PatchSetCameraTristimuli3,2)]);
         
-        OFT_IDT_b=1./OFT_IDT_bScaled;
-        OFT_PatchSetCameraTristimuli3=100*(OFT_PatchSetCameraTristimuli./OFT_CAM_WwUnscaled(2));
-        OFT_PatchSetCameraTristimuliW=OFT_PatchSetCameraTristimuli3.*repmat(OFT_IDT_b,[1,size(OFT_PatchSetCameraTristimuli3,2)]);
-        
-        %!!! no scaling as in IDT standard
-        % because we do use the white balance specific camera response, at
-        % best the unbalanced raw data, or a WB setting near the raw
-        % response
-        % OFT_PatchSetCameraTristimuli=OFT_PatchSetCameraTristimuliW;
-        
-        %OFT_IDT_b=OFT_PatchSetCameraTristimuli(:,19);
-        
-        %OFT_PatchSetCameraTristimuli(1,:)=scaleB(1,1).*OFT_PatchSetCameraTristimuli(1,:);
-        %OFT_PatchSetCameraTristimuli(2,:)=scaleB(2,1).*OFT_PatchSetCameraTristimuli(2,:);
-        %OFT_PatchSetCameraTristimuli(3,:)=scaleB(3,1).*OFT_PatchSetCameraTristimuli(3,:);
+        OFT_PatchSetCameraTristimuli=OFT_PatchSetCameraTristimuliW;
 
     elseif(isempty(strfind(lower(OFT_MeasuredCameraResponseFileName), '.tif'))||isempty(strfind(lower(OFT_MeasuredCameraResponseFileName), '.dpx')))%//!!!
 

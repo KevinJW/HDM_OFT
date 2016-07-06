@@ -9,8 +9,10 @@ if(isempty(strfind(OFT_IlluminantSpectrum,'.')))
         case '2800'
             OFT_Illuminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetBlackBodyRadiatorIllumination(2800);
         case '3000'
-            OFT_Illuminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetBlackBodyRadiatorIllumination(3000); 
+            OFT_Illuminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetBlackBodyRadiatorIllumination(3000);
         case '3050'
+            OFT_Illuminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetBlackBodyRadiatorIllumination(3050);
+        case 'ISOTungsten'
             OFT_Illuminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetBlackBodyRadiatorIllumination(3050);
         case '3200'
             OFT_Illuminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetBlackBodyRadiatorIllumination(3200);
