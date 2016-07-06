@@ -1,11 +1,25 @@
 function OFT_IDTFiles=HDM_OFT_IDT_ProfilesGeneration...
     (IDTTaskData)
 
-if isempty(IDTTaskData.SpectralResponse_In_LightCalibrationSpectrum)%chart based
+if isempty(IDTTaskData.SpectralResponse_In_LightCalibrationSpectrum)        %chart based
     OFT_Illuminations={IDTTaskData.IDTCreationConstraints_In_WhitePoint};
-else                                                                        %spectral based therefore we might take tungsten as well
-    OFT_Illuminations={IDTTaskData.IDTCreationConstraints_In_WhitePoint, IDTTaskData.SpectralResponse_In_LightCalibrationSpectrum};
+else                                                                        %spectral based therefore we use the line and light spectra too
+    OFT_Illuminations={IDTTaskData.IDTCreationConstraints_In_WhitePoint, ...
+                        IDTTaskData.SpectralResponse_In_LineCalibrationSpectrum, IDTTaskData.SpectralResponse_In_LightCalibrationSpectrum};
 end
+
+%adding the AMPAS specified light sources
+if strcmp(OFT_Illuminations(1), 'D55')
+    
+    OFT_Illuminations{size(OFT_Illuminations, 2) + 1} = '3050';
+    
+else
+    
+    OFT_Illuminations{size(OFT_Illuminations, 2) + 1} = 'D55'; 
+    OFT_Illuminations{size(OFT_Illuminations, 2) + 1} = '3050';
+
+end
+
 
 OFT_IDTFiles=cell(size(OFT_Illuminations));
 
@@ -33,9 +47,9 @@ for curIlluminandIndex=1:size(OFT_Illuminations,2)
     disp('estimated matrix');
     disp(OFT_IDT_B);
     
-%     OFT_SpectralDataBasedTransformedImage2View=HDM_OFT_EvaluateIDTProfiledChartImage...
-%     (OFT_IDT_B, OFT_IDT_b, IDTTaskData.Evaluation_In_TestImage,IDTTaskData.PreLinearisation_Out_LinCurve, IlluminantStr,...
-%     HDM_OFT_IDT_ReferenceCamera.RICDType(),HDM_OFT_ColorNeutralCompensations.ChromaticAdaptationBradfordType(),HDM_OFT_CIEStandard.StandardObserver1931_2Degrees());
+% 	OFT_SpectralDataBasedTransformedImage2View=HDM_OFT_EvaluateIDTProfiledChartImage...
+% 	(OFT_IDT_B, OFT_IDT_b, IDTTaskData.Evaluation_In_TestImage,IDTTaskData.PreLinearisation_Out_LinCurve, TargetIlluminantStr,...
+% 	HDM_OFT_IDT_ReferenceCamera.RICDType(),HDM_OFT_ColorNeutralCompensations.ChromaticAdaptationBradfordType(),HDM_OFT_CIEStandard.StandardObserver1931_2Degrees());
     
 end
 

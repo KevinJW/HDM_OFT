@@ -60,7 +60,7 @@ if(exist('OFT_In_UsedIlluminantSpectrum','var')==0 || isempty(OFT_In_UsedIllumin
     disp('using default neutral compensation');   
     OFT_UsedIlluminantSpectrum='D55';    
 else
-    OFT_UsedIlluminantSpectrum=OFT_In_IlluminantSpectrum;  
+    OFT_UsedIlluminantSpectrum=OFT_In_UsedIlluminantSpectrum;  
 end
 
 if(exist('OFT_In_ReferenceDomain','var')==0)
@@ -349,16 +349,20 @@ function [OFT_PatchSetCameraTristimuli, OFT_IDT_b] = ComputeCameraTristimuli4Pat
         OFT_IDT_bFromWPatch=OFT_PatchSetCameraTristimuli(:,19);
         
         OFT_IDT_b=1./OFT_IDT_bScaled;
-        OFT_PatchSetCameraTristimuli=100*(OFT_PatchSetCameraTristimuli./OFT_CAM_WwUnscaled(2));
-        OFT_PatchSetCameraTristimuliW=OFT_PatchSetCameraTristimuli.*repmat(OFT_IDT_b,[1,size(OFT_PatchSetCameraTristimuli,2)]);
+        OFT_PatchSetCameraTristimuli3=100*(OFT_PatchSetCameraTristimuli./OFT_CAM_WwUnscaled(2));
+        OFT_PatchSetCameraTristimuliW=OFT_PatchSetCameraTristimuli3.*repmat(OFT_IDT_b,[1,size(OFT_PatchSetCameraTristimuli3,2)]);
         
-        OFT_PatchSetCameraTristimuli=OFT_PatchSetCameraTristimuliW;
+        %!!! no scaling as in IDT standard
+        % because we do use the white balance specific camera response, at
+        % best the unbalanced raw data, or a WB setting near the raw
+        % response
+        % OFT_PatchSetCameraTristimuli=OFT_PatchSetCameraTristimuliW;
         
         %OFT_IDT_b=OFT_PatchSetCameraTristimuli(:,19);
         
-%         OFT_PatchSetCameraTristimuli(1,:)=scaleB(1,1).*OFT_PatchSetCameraTristimuli(1,:);
-%         OFT_PatchSetCameraTristimuli(2,:)=scaleB(2,1).*OFT_PatchSetCameraTristimuli(2,:);
-%         OFT_PatchSetCameraTristimuli(3,:)=scaleB(3,1).*OFT_PatchSetCameraTristimuli(3,:);
+        %OFT_PatchSetCameraTristimuli(1,:)=scaleB(1,1).*OFT_PatchSetCameraTristimuli(1,:);
+        %OFT_PatchSetCameraTristimuli(2,:)=scaleB(2,1).*OFT_PatchSetCameraTristimuli(2,:);
+        %OFT_PatchSetCameraTristimuli(3,:)=scaleB(3,1).*OFT_PatchSetCameraTristimuli(3,:);
 
     elseif(isempty(strfind(lower(OFT_MeasuredCameraResponseFileName), '.tif'))||isempty(strfind(lower(OFT_MeasuredCameraResponseFileName), '.dpx')))%//!!!
 

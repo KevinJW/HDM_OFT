@@ -84,9 +84,24 @@ OFT_ClientParamsDOM_In = OFT_ClientParamsDOM_Log.item(0).getElementsByTagName('I
 thisListitem = OFT_ClientParamsDOM_In.item(0);
 
 IDTTaskData.IDTCreationConstraints_In_WhitePoint=GetXMLNodeVal(thisListitem,'WhitePoint');
+
+if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_WhitePoint), '.csv')) || ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_WhitePoint), '.xls')))
+    IDTTaskData.IDTCreationConstraints_In_WhitePoint =  strcat(OFT_ClientDataDir, IDTTaskData.IDTCreationConstraints_In_WhitePoint);
+end
+
 IDTTaskData.IDTCreationConstraints_In_SceneIllumination=GetXMLNodeVal(thisListitem,'SceneIllumination');
+
+if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_SceneIllumination), '.csv')) || ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_SceneIllumination), '.xls')))
+    IDTTaskData.IDTCreationConstraints_In_SceneIllumination =  strcat(OFT_ClientDataDir, IDTTaskData.IDTCreationConstraints_In_SceneIllumination);
+end
+
 IDTTaskData.IDTCreationConstraints_In_ErrorMinimizationDomain=GetXMLNodeVal(thisListitem,'ErrorMinimizationDomain');
+
 IDTTaskData.IDTCreationConstraints_In_PatchSet=GetXMLNodeVal(thisListitem,'PatchSet');  
+
+if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_PatchSet), '.csv')) || ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_PatchSet), '.xls')))
+    IDTTaskData.IDTCreationConstraints_In_PatchSet =  strcat(OFT_ClientDataDir, IDTTaskData.IDTCreationConstraints_In_PatchSet);
+end
 
 OFT_ClientParamsDOM_Log = OFT_ClientParamsDOM.getElementsByTagName('Evaluation');
 OFT_ClientParamsDOM_In = OFT_ClientParamsDOM_Log.item(0).getElementsByTagName('In');

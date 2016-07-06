@@ -7,7 +7,9 @@ classdef HDM_OFT_SpectrumExportImport
 
             HDM_OFT_Utils.OFT_DispTitle('import spectrum');
             
-            try %%uprtek
+            %% uprtek
+            
+            try 
                 
             l_fid = fopen(i_spectrumFile);
             l_out = textscan(l_fid,'%s%s','delimiter','\t');
@@ -52,11 +54,41 @@ classdef HDM_OFT_SpectrumExportImport
             ;
                 
             end
-                      
-            %% EyeOne
             
             [l_p,l_n,l_ext]=fileparts(i_spectrumFile);
             
+            %% Open Film Tools spectral database
+            if(strcmp(l_ext,'.csv'))
+                try
+
+                    l_table = HDM_OFT_SpectrumExportImport.read_mixed_csv(i_spectrumFile, ';');
+
+                    l_table(1, :) = cellfun(@(s) {strrep(s, 'nm', '')},l_table(1, :));
+                    l_table(1, :) = cellfun(@(s) {str2num(s)},l_table(1, :));
+                    l_table(2, :) = cellfun(@(s) {str2double(s)},l_table(2, :));
+
+                    o_spectrum = cell2mat([l_table(1, 2 : size(l_table, 2)); l_table(2, 2 : size(l_table, 2))]);
+
+                    if(isnan(o_spectrum(2,1)))%%give third line a chance
+                        
+                        l_table(3, :) = cellfun(@(s) {str2double(s)},l_table(3, :));
+                        o_spectrum = cell2mat([l_table(1, 2 : size(l_table, 2)); l_table(3, 2 : size(l_table, 2))]);
+                        
+                    end
+                    
+                    l_nmBase=360:1:830;
+                    o_spectrum = [l_nmBase; interp1(o_spectrum(1,:), o_spectrum(2,:),l_nmBase,'pchip',0)];
+                    return;
+
+                catch
+
+                    ;
+
+                end
+            end
+                      
+            %% EyeOne
+                        
             if(strcmp(l_ext,'.xls') || strcmp(l_ext,'.xlsx'))
                 
                 try
