@@ -27,9 +27,10 @@ no WB</Comment>
   </DeviceLog>
   <IDTCreationConstraints ProcessID="2">
     <In>
-      <WhitePoint>D50</WhitePoint>
+      <WhitePoint>lightMod_2015-02-27-170428.xlsx</WhitePoint>
+      <SceneIllumination>lightMod_2015-02-27-170428.xlsx</SceneIllumination>
       <ErrorMinimizationDomain>Lab</ErrorMinimizationDomain>
-      <PatchSet>Gretag Macbeth Color Checker</PatchSet>
+      <PatchSet>PatchesModOwnMeasurement.xlsx</PatchSet>
       <CIEStandardObserver>CIE1931</CIEStandardObserver>
     </In>
   </IDTCreationConstraints>
@@ -48,7 +49,8 @@ no WB</Comment>
   </Evaluation>
   <PreLinearisaiton ProcessID="0">
     <In>
-      <LinearizationFile>linearization-140513_OETF_2K_v1_noIndex.tif</LinearizationFile>
+      <Linearization>linear</Linearization>
+      <LinearizationFile></LinearizationFile>
     </In>
   </PreLinearisaiton>
 </OFT-IDT-Creation-Params>

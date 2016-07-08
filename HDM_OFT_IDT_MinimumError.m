@@ -265,40 +265,8 @@ function [OFT_PatchSetCameraTristimuli, OFT_IDT_b] = ComputeCameraTristimuli4Pat
 
         HDM_OFT_Utils.OFT_DispSubTitle('start camera spectral response based tristimuli computation');    
 
-        OFT_CameraSpectralResponse=csvread(OFT_MeasuredCameraResponseFileName);
-        OFT_CameraSpectralResponse_Wavelength=OFT_CameraSpectralResponse(:,1)';
+        OFT_CameraSpectralResponse_1nm_CIE31Range = HDM_OFT_GetSpectralResponse(OFT_MeasuredCameraResponseFileName);
 
-        %to be discussed relative values doesnt really correspond with RGB raw
-        %values
-
-        OFT_CameraSpectralResponse_Rrelative=OFT_CameraSpectralResponse(:,2)';
-
-        if(size(OFT_CameraSpectralResponse,2)==4)
-            OFT_CameraSpectralResponse_Grelative=OFT_CameraSpectralResponse(:,3)';
-            OFT_CameraSpectralResponse_Brelative=OFT_CameraSpectralResponse(:,4)';
-        else
-            OFT_CameraSpectralResponse_G1relative=OFT_CameraSpectralResponse(:,3)';
-            OFT_CameraSpectralResponse_G2relative=OFT_CameraSpectralResponse(:,4)';
-            OFT_CameraSpectralResponse_Grelative=0.5 * (OFT_CameraSpectralResponse_G1relative+OFT_CameraSpectralResponse_G2relative);
-            OFT_CameraSpectralResponse_Brelative=OFT_CameraSpectralResponse(:,5)';
-        end
-
-        %to be discussed borders are zero in relative values
-        %maxmimum correct?
-        %in near ir it increases! correction vector additive
-
-        OFT_CameraSpectralResponse=...
-            [OFT_CameraSpectralResponse_Wavelength;
-            OFT_CameraSpectralResponse_Rrelative;
-            OFT_CameraSpectralResponse_Grelative;
-            OFT_CameraSpectralResponse_Brelative];
-
-        OFT_CameraSpectralResponse_1nm_CIE31Range=...
-            [360:1:830;
-            interp1(OFT_CameraSpectralResponse(1,:),OFT_CameraSpectralResponse(2,:),360:1:830,'pchip',0);
-            interp1(OFT_CameraSpectralResponse(1,:),OFT_CameraSpectralResponse(3,:),360:1:830,'pchip',0);
-            interp1(OFT_CameraSpectralResponse(1,:),OFT_CameraSpectralResponse(4,:),360:1:830,'pchip',0)];
-        
         subplot(2,2,4)
         plot(OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(4,:),...
             OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(3,:),...
