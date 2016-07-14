@@ -117,6 +117,7 @@ classdef HDM_OFT_SpectrumExportImport
                     
                     l_table(1, :) = cellfun(@(s) {strrep(s, 'nm', '')},l_table(1, :));
                     l_table(1, :) = cellfun(@(s) {str2num(s)},l_table(1, :));
+                    l_table(2, :) = cellfun(@(s) {strrep(s, '.', '')},l_table(2, :));%//!!!
                     l_table(2, :) = cellfun(@(s) {str2double(s)},l_table(2, :));
                     
                     o_spectrum = cell2mat([l_table(1, 2 : size(l_table, 2)); l_table(2, 2 : size(l_table, 2))]);

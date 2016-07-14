@@ -14,7 +14,8 @@ else
     end
     Z = conv2(Z,ones(10),'same');
     
-    J = (I/max(I(:)));
+    %% //!!! J = (I/max(I(:)));
+    J = I;
     J(:,:,1) = J(:,:,1).*(1-Z)+Z;
     
     figure;

@@ -32,6 +32,12 @@ if(isempty(strfind(OFT_IlluminantSpectrum,'.')))
             OFT_Illuminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetStandardDIllumination(6504);
         case 'D75'
             OFT_Illuminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetStandardDIllumination(7500);
+           
+        case 'E'
+            
+            l_wavelengths = 360:1:830;
+            l_intensity = ones(1, size(l_wavelengths, 2));
+            OFT_Illuminant_Spectrum_1nm_CIE31Range = [l_wavelengths; l_intensity];
             
         otherwise
     end

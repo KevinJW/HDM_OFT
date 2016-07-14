@@ -63,7 +63,7 @@ for peakIndex=1:size(peak_value,2)
     OFT_ReferencePeaksWaveLengths(1,peakIndex)=r;    
     polyval(a,r);
     
-    if(r >400 && r <700)
+    if(r >425 && r <700)
         
         OFT_ReferencePeaksWaveLengthsFiltered = [OFT_ReferencePeaksWaveLengthsFiltered, r];
         OFT_ReferencePeaksWaveLengthsValuesFiltered = [OFT_ReferencePeaksWaveLengthsValuesFiltered, peak_value(1, peakIndex)];
@@ -98,13 +98,13 @@ HDM_OFT_Utils.OFT_DispSubTitle('read camera line spectrum image');
 
 %% find rect mask for spectrum region
 l_maskImage = medfilt2(rgb2gray(HDM_OFT_ImageExportImport.ImportImage(i_maskImage)));
-l_maskImage1 = im2bw(l_maskImage, 0.05);
+l_maskImage1 = im2bw(l_maskImage, 0.005);%//!!!
 
 if usejava('Desktop')
 	subplot(2,2,2),imshow(l_maskImage1);
 end
 
-%Find Plate
+%Find Plate6
 [lab, n] = bwlabel(l_maskImage1);
 
 regions = regionprops(lab, 'All');
@@ -253,7 +253,7 @@ for cur = 1 : size(x, 2)
     
     pos = x(1, cur);
     l_lookup = find(OFT_SpectrumImage_peak_location == pos);
-    l_intensity4x(cur) = OFT_SpectrumImage_peak_value(1, l_lookup);
+    l_intensity4x(cur) = OFT_SpectrumImage_peak_value(1, l_lookup(1, 1));
       
 end
 
