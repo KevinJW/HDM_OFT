@@ -112,8 +112,8 @@ end
 l_boundingBox4MaxArea(1) = l_boundingBox4MaxArea(1) - 0.5 * l_boundingBox4MaxArea(3);
 l_boundingBox4MaxArea(3) = 2 * l_boundingBox4MaxArea(3);
 
-l_boundingBox4MaxArea(2) = l_boundingBox4MaxArea(2) + 0.1 * l_boundingBox4MaxArea(4);
-l_boundingBox4MaxArea(4) = l_boundingBox4MaxArea(4) - 0.2 * l_boundingBox4MaxArea(4);
+l_boundingBox4MaxArea(2) = l_boundingBox4MaxArea(2) + 0.3 * l_boundingBox4MaxArea(4);
+l_boundingBox4MaxArea(4) = l_boundingBox4MaxArea(4) - 0.6 * l_boundingBox4MaxArea(4);
 
 %% apply mask
 

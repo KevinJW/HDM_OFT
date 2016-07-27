@@ -222,6 +222,7 @@ title('CIE31 x y color value parts');
 %% 4.7.3 scene adopted white tristimulus, here the illumination source
 HDM_OFT_Utils.OFT_DispSubTitle('4.7.3 setup tristimuli for scene adopetd white currently daylight from above used');
 %figure
+
 subplot(2,2,3)
 plot(OFT_Illuminant_Spectrum_1nm_CIE31Range(1,:),OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:))
 xlabel('wavelength in nm')
@@ -260,6 +261,12 @@ function [OFT_PatchSetCameraTristimuli, OFT_IDT_b] = ComputeCameraTristimuli4Pat
     (OFT_MeasuredCameraResponseFileName, OFT_PreLinearisationCurve, OFT_Illuminant_Spectrum_1nm_CIE31Range, OFT_TargetIlluminant_Spectrum_1nm_CIE31Range, OFT_PatchSet_SpectralCurve)
 
     %not aequidistant
+    
+    subplot(2,2,2)
+    plot(OFT_Illuminant_Spectrum_1nm_CIE31Range(1,:),OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:))
+    xlabel('wavelength in nm')
+    ylabel('relative power distribution')
+    title('relative scene illumination power distribution');
 
     if(strfind(OFT_MeasuredCameraResponseFileName, '.csv'))
 
@@ -290,27 +297,21 @@ function [OFT_PatchSetCameraTristimuli, OFT_IDT_b] = ComputeCameraTristimuli4Pat
         %% 4.7.5 camera system white balance factors
         HDM_OFT_Utils.OFT_DispTitle('4.7.5 camera system white balance factors');
         
-        OFT_CAM_XwE=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(2,:));
-        OFT_CAM_YwE=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(3,:));
-        OFT_CAM_ZwE=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(4,:));
-
         OFT_CAM_Xw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(2,:) .* OFT_TargetIlluminant_Spectrum_1nm_CIE31Range(2,:));
         OFT_CAM_Yw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(3,:) .* OFT_TargetIlluminant_Spectrum_1nm_CIE31Range(2,:));
         OFT_CAM_Zw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(4,:) .* OFT_TargetIlluminant_Spectrum_1nm_CIE31Range(2,:));
 
-        OFT_CAM_WwUnscaled = [OFT_CAM_Xw;OFT_CAM_Yw;OFT_CAM_Zw];
+        OFT_CAM_WwUnscaled = [OFT_CAM_Xw;OFT_CAM_Yw;OFT_CAM_Zw];               
+        OFT_IDT_b=1./OFT_CAM_WwUnscaled;
 
-        %% 4.7.6 compute white balanced linearized camera system response values of
-        %%training colours
+        %% 4.7.6 compute white balanced linearized camera system response values of training colours
         HDM_OFT_Utils.OFT_DispTitle('4.7.6 compute white balanced linearized camera system response values of training colours');
         [OFT_PatchSetCameraTristimuli,OFT_PatchSetCameraTristimuli_ColorValueParts]=...
                 HDM_OFT_TristimuliCreator.CreateFromSpectrum(...
                         OFT_CameraSpectralResponse_1nm_CIE31Range,...
                         OFT_Illuminant_Spectrum_1nm_CIE31Range,...
-                        OFT_PatchSet_SpectralCurve);
-         
-        
-        OFT_IDT_b=1./OFT_CAM_WwUnscaled;
+                        OFT_PatchSet_SpectralCurve);         
+
         OFT_PatchSetCameraTristimuli3 = OFT_PatchSetCameraTristimuli;
         OFT_PatchSetCameraTristimuliW = OFT_PatchSetCameraTristimuli3 .* repmat(OFT_IDT_b,[1,size(OFT_PatchSetCameraTristimuli3,2)]);
         
@@ -321,7 +322,6 @@ function [OFT_PatchSetCameraTristimuli, OFT_IDT_b] = ComputeCameraTristimuli4Pat
         %% annex B estimation by test chart image from camera
         HDM_OFT_Utils.OFT_DispTitle('start camera rgb image based tristimuli computation (Annex B)');    
 
-        % //!!!open colour domain for camera image
         HDM_OFT_Utils.OFT_DispSubTitle('search for test chart in image');
         OFT_cameraImageOfTestChartOrigin=HDM_OFT_ImageExportImport.ImportImage(OFT_MeasuredCameraResponseFileName, OFT_PreLinearisationCurve);
         
@@ -331,16 +331,21 @@ function [OFT_PatchSetCameraTristimuli, OFT_IDT_b] = ComputeCameraTristimuli4Pat
         
         OFT_cameraImageOfTestChart = double(OFT_cameraImageOfTestChartOrigin);
         [OFT_cameraImageOfTestChart_PatchLocations,OFT_cameraImageOfTestChart_PatchColours] = CCFind(OFT_cameraImageOfTestChart);
-        %visualizecc(OFT_cameraImageOfTestChart,OFT_cameraImageOfTestChart_PatchLocations);
-
-        %///!!!white point scale
-        % //!!! Preprocess rgb tupel linear white point
-        OFT_PatchSetCameraTristimuli=OFT_cameraImageOfTestChart_PatchColours;
-        %OFT_PatchSetCameraTristimuli=100*(OFT_cameraImageOfTestChart_PatchColours./OFT_cameraImageOfTestChart_PatchColours(2,19));
-
-        OFT_CAM_Ww=OFT_PatchSetCameraTristimuli(:,19);
-
+        OFT_PatchSetCameraTristimuli = OFT_cameraImageOfTestChart_PatchColours;
+        
+        %% 4.7.5 camera system white balance factors
+        OFT_CAM_Ww = OFT_PatchSetCameraTristimuli(:,19);
         OFT_IDT_b=[1;1;1];%1./OFT_CAM_Ww;
+        
+        OFT_IDT_b=1./OFT_CAM_Ww;
+        
+        %% 4.7.6 compute white balanced linearized camera system response values of training colours
+
+        OFT_PatchSetCameraTristimuli3 = OFT_PatchSetCameraTristimuli;
+        OFT_PatchSetCameraTristimuliW = OFT_PatchSetCameraTristimuli3 .* repmat(OFT_IDT_b,[1,size(OFT_PatchSetCameraTristimuli3,2)]);
+        
+        OFT_PatchSetCameraTristimuli=OFT_PatchSetCameraTristimuliW;
+        
 
     end
 
