@@ -4,22 +4,24 @@ function OFT_IDTFiles=HDM_OFT_IDT_ProfilesGeneration...
 if isempty(IDTTaskData.SpectralResponse_In_LightCalibrationSpectrum)        %chart based
     OFT_Illuminations={IDTTaskData.IDTCreationConstraints_In_WhitePoint};
 else                                                                        %spectral based therefore we use the line and light spectra too
-    OFT_Illuminations={IDTTaskData.IDTCreationConstraints_In_WhitePoint, ...
-                        IDTTaskData.SpectralResponse_In_LineCalibrationSpectrum, IDTTaskData.SpectralResponse_In_LightCalibrationSpectrum};
+    OFT_Illuminations={IDTTaskData.IDTCreationConstraints_In_WhitePoint};%, ...
+                        %IDTTaskData.SpectralResponse_In_LineCalibrationSpectrum, IDTTaskData.SpectralResponse_In_LightCalibrationSpectrum};
 end
 
-%adding the AMPAS specified light sources
-if strcmp(OFT_Illuminations(1), 'D55')
-    
-    OFT_Illuminations{size(OFT_Illuminations, 2) + 1} = '3050';
-    
-else
-    
-    OFT_Illuminations{size(OFT_Illuminations, 2) + 1} = 'D55'; 
-    OFT_Illuminations{size(OFT_Illuminations, 2) + 1} = '3050';
+% %adding the AMPAS specified light sources
+% if strcmp(OFT_Illuminations(1), 'D55')
+%     
+%     OFT_Illuminations{size(OFT_Illuminations, 2) + 1} = '3050';
+%     
+% else
+%     
+%     OFT_Illuminations{size(OFT_Illuminations, 2) + 1} = 'D55'; 
+%     OFT_Illuminations{size(OFT_Illuminations, 2) + 1} = '3050';
+% 
+% end
 
-end
-
+% IDTTaskData.IDTCreationConstraints_In_SceneIllumination = '3579';
+% IDTTaskData.SpectralResponse_Out_SpectralResponseFile = IDTTaskData.Evaluation_In_TestImage;
 
 OFT_IDTFiles=cell(size(OFT_Illuminations));
 
@@ -47,16 +49,34 @@ for curIlluminandIndex=1:size(OFT_Illuminations,2)
     disp('estimated matrix');
     disp(OFT_IDT_B);
     
-% 	OFT_SpectralDataBasedTransformedImage2View=HDM_OFT_EvaluateIDTProfiledChartImage...
-% 	(OFT_IDT_B, OFT_IDT_b, ...
-%     IDTTaskData.Evaluation_In_TestImage, IDTTaskData.PreLinearisation_Out_LinCurve, ...
-%     TargetIlluminantStr, IDTTaskData.IDTCreationConstraints_In_SceneIllumination, ...
-%     IDTTaskData.IDTCreationConstraints_In_PatchSet,... 
-%     IDTTaskData.SpectralResponse_Out_SpectralResponseFile, ...
-% 	HDM_OFT_IDT_ReferenceCamera.RICDType(), HDM_OFT_ColorNeutralCompensations.ChromaticAdaptationBradfordType(), HDM_OFT_CIEStandard.StandardObserver1931_2Degrees());
+    global gOFT_SpectralDataBasedTransformedImage2View;
+    
+    if(isempty(gOFT_SpectralDataBasedTransformedImage2View))
+    
+        gOFT_SpectralDataBasedTransformedImage2View = HDM_OFT_EvaluateIDTProfiledChartImage...
+        (OFT_IDT_B, OFT_IDT_b, ...
+        IDTTaskData.Evaluation_In_TestImage, IDTTaskData.PreLinearisation_Out_LinCurve, ...
+        TargetIlluminantStr, IDTTaskData.IDTCreationConstraints_In_SceneIllumination, ...
+        IDTTaskData.IDTCreationConstraints_In_PatchSet,... 
+        IDTTaskData.SpectralResponse_Out_SpectralResponseFile, ...
+        HDM_OFT_IDT_ReferenceCamera.RICDType(), HDM_OFT_ColorNeutralCompensations.ChromaticAdaptationBradfordType(), HDM_OFT_CIEStandard.StandardObserver1931_2Degrees());
+
+    else
+
+        gOFT_SpectralDataBasedTransformedImage2View = HDM_OFT_EvaluateIDTProfiledChartImage...
+        (OFT_IDT_B, OFT_IDT_b, ...
+        IDTTaskData.Evaluation_In_TestImage, IDTTaskData.PreLinearisation_Out_LinCurve, ...
+        TargetIlluminantStr, IDTTaskData.IDTCreationConstraints_In_SceneIllumination, ...
+        IDTTaskData.IDTCreationConstraints_In_PatchSet,... 
+        IDTTaskData.SpectralResponse_Out_SpectralResponseFile, ...
+        HDM_OFT_IDT_ReferenceCamera.RICDType(), HDM_OFT_ColorNeutralCompensations.ChromaticAdaptationBradfordType(), HDM_OFT_CIEStandard.StandardObserver1931_2Degrees(), ...
+        gOFT_SpectralDataBasedTransformedImage2View);
+
+    end
     
 end
 
+% for test purposes calculation in XYZ domain directly
 % %methods must be update as above used
 % HDM_OFT_Utils.OFT_DispSubTitle('create spectral based idt profile for technical xyz based evaluation');
 % 
@@ -74,7 +94,6 @@ end
 % 
 % HDM_OFT_Utils.OFT_DispSubTitle('create annex b idt profile for technical xyz based evaluation');
 % 
-% % !!!  Hacky try block to kill exception-exit in case of a non-colorchecker
 % % image as TestImage
 % try 
 % [OFT_IDTFile_TechTestAnnexB, OFT_IDT_B_TechTestAnnexB, OFT_IDT_b]=...
@@ -90,8 +109,6 @@ end
 % catch
 %     HDM_OFT_Utils.OFT_DispSubTitle('   !!! Error. Maybe no Color Checker image as Test Image. Could be ignored !!!');
 % end
-
-% !!! Hack End
 
 HDM_OFT_Utils.OFT_DispTitle('finish IDT profile creation');
 

@@ -44,7 +44,8 @@ else
 end
 
 if(exist('OFT_In_SpectralResponseFile','var')==0 || strcmp(OFT_In_SpectralResponseFile,''))
-    OFT_SpectralResponseFile = strcat(OFT_Env.OFT_RootDataDir,'/cameraResponsesReference/industryCAM.csv');
+    %OFT_SpectralResponseFile = strcat(OFT_Env.OFT_RootDataDir,'/cameraResponsesReference/industryCAM.csv');
+    OFT_SpectralResponseFile = strcat(OFT_Env.OFT_RootDataDir,'/cameraImagesReference/testimage-mmCenter.tif');
     
     disp('using reference camera response'); 
     disp(OFT_SpectralResponseFile);
@@ -221,57 +222,61 @@ else
     l_t.Position(4) = l_t.Extent(4);
     
     % val from illumination/patch reflectances/camera response
-    
-    OFT_CameraSpectralResponse_1nm_CIE31Range = HDM_OFT_GetSpectralResponse(OFT_SpectralResponseFile);
-    
-    OFT_UsedIlluminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetIlluminantSpectrum(OFT_SceneIllumination);
-
-    %%patches spectrum aquisition
-    %10 nm resolution
-    HDM_OFT_Utils.OFT_DispSubTitle('read patch spectra');
-    OFT_PatchSet_SpectralCurve=HDM_OFT_PatchSet.GetPatchSpectra(OFT_PatchMeasurementFile);
-   
-    [OFT_PatchSetCameraTristimuli,OFT_PatchSetCameraTristimuli_ColorValueParts]=...
-                HDM_OFT_TristimuliCreator.CreateFromSpectrum(...
-                        OFT_CameraSpectralResponse_1nm_CIE31Range,...
-                        OFT_UsedIlluminant_Spectrum_1nm_CIE31Range,...
-                        OFT_PatchSet_SpectralCurve);
-                    
-    l_f = figure('Name','camera rgb values for patches by using illumination/reflectance/response');
-    l_t = uitable(l_f ,'Data', OFT_PatchSetCameraTristimuli',...
-                'ColumnName',l_rnames, ... 
-                'Position',[0 0 100 100],...
-                'RowName',l_cnames);
-	l_t.Position(3) = l_t.Extent(3);
-    l_t.Position(4) = l_t.Extent(4);
-    
-    OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromSpec = OFT_PatchSetCameraTristimuli;
-    for cur = 1 : size(OFT_PatchSetCameraTristimuli, 2)
+    if(strfind(OFT_SpectralResponseFile, '.csv'))%if spectral based
         
-        OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromSpec(1, cur) = OFT_PatchSetCameraTristimuli(1, cur) / OFT_PatchSetCameraTristimuli(2, cur);
-        OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromSpec(2, cur) = OFT_PatchSetCameraTristimuli(2, cur) / OFT_PatchSetCameraTristimuli(2, cur);
-        OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromSpec(3, cur) = OFT_PatchSetCameraTristimuli(3, cur) / OFT_PatchSetCameraTristimuli(2, cur);
-        
-    end  
-    
-    l_f = figure('Name','camera rgb values green normalized ratio for patches by using illumination/reflectance/response');
-    l_t = uitable(l_f ,'Data', OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromSpec',...
-                'ColumnName',l_rnames, ... 
-                'Position',[0 0 100 100],...
-                'RowName',l_cnames);
-	l_t.Position(3) = l_t.Extent(3);
-    l_t.Position(4) = l_t.Extent(4);
-    
-    
-    l_ratioSpec2CAM = OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromSpec ./ OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromCAM;
+        OFT_CameraSpectralResponse_1nm_CIE31Range = HDM_OFT_GetSpectralResponse(OFT_SpectralResponseFile);
 
-    l_f = figure('Name','spectral to CAM data ratio');
-    l_t = uitable(l_f ,'Data', l_ratioSpec2CAM',...
-                'ColumnName',l_rnames, ... 
-                'Position',[0 0 100 100],...
-                'RowName',l_cnames);
-	l_t.Position(3) = l_t.Extent(3);
-    l_t.Position(4) = l_t.Extent(4);
+        OFT_UsedIlluminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetIlluminantSpectrum(OFT_SceneIllumination);
+
+        %%patches spectrum aquisition
+        %10 nm resolution
+        HDM_OFT_Utils.OFT_DispSubTitle('read patch spectra');
+        OFT_PatchSet_SpectralCurve=HDM_OFT_PatchSet.GetPatchSpectra(OFT_PatchMeasurementFile);
+
+        [OFT_PatchSetCameraTristimuli,OFT_PatchSetCameraTristimuli_ColorValueParts]=...
+                    HDM_OFT_TristimuliCreator.CreateFromSpectrum(...
+                            OFT_CameraSpectralResponse_1nm_CIE31Range,...
+                            OFT_UsedIlluminant_Spectrum_1nm_CIE31Range,...
+                            OFT_PatchSet_SpectralCurve);
+
+        l_f = figure('Name','camera rgb values for patches by using illumination/reflectance/response');
+        l_t = uitable(l_f ,'Data', OFT_PatchSetCameraTristimuli',...
+                    'ColumnName',l_rnames, ... 
+                    'Position',[0 0 100 100],...
+                    'RowName',l_cnames);
+        l_t.Position(3) = l_t.Extent(3);
+        l_t.Position(4) = l_t.Extent(4);
+
+        OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromSpec = OFT_PatchSetCameraTristimuli;
+        for cur = 1 : size(OFT_PatchSetCameraTristimuli, 2)
+
+            OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromSpec(1, cur) = OFT_PatchSetCameraTristimuli(1, cur) / OFT_PatchSetCameraTristimuli(2, cur);
+            OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromSpec(2, cur) = OFT_PatchSetCameraTristimuli(2, cur) / OFT_PatchSetCameraTristimuli(2, cur);
+            OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromSpec(3, cur) = OFT_PatchSetCameraTristimuli(3, cur) / OFT_PatchSetCameraTristimuli(2, cur);
+
+        end  
+
+        l_f = figure('Name','camera rgb values green normalized ratio for patches by using illumination/reflectance/response');
+        l_t = uitable(l_f ,'Data', OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromSpec',...
+                    'ColumnName',l_rnames, ... 
+                    'Position',[0 0 100 100],...
+                    'RowName',l_cnames);
+        l_t.Position(3) = l_t.Extent(3);
+        l_t.Position(4) = l_t.Extent(4);
+
+
+        l_ratioSpec2CAM = OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromSpec ./ OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromCAM;
+
+        l_f = figure('Name','spectral to CAM data ratio');
+        l_t = uitable(l_f ,'Data', l_ratioSpec2CAM',...
+                    'ColumnName',l_rnames, ... 
+                    'Position',[0 0 100 100],...
+                    'RowName',l_cnames);
+        l_t.Position(3) = l_t.Extent(3);
+        l_t.Position(4) = l_t.Extent(4);
+    
+    end
+    
 end
 
 %% process
@@ -290,16 +295,7 @@ OFT_TransformedImage2ViewbScaled(:,:,3) = (OFT_b(3)/min(OFT_b)) * OFT_cameraImag
 
 %% clip to max 1
 
-% for now nothing done to evaluate all tristimuli
-% double data left untouched
-% uint data is scaled during import to max 1 (see above)
-
-%%
-figure('Name','linearized white normalized image (no clipping) - left/lin right/sRGB delinearized')
-if usejava('Desktop')
-	subplot(1,2,1), imshow(OFT_TransformedImage2ViewbScaled);
-    subplot(1,2,2), imshow(sRGBDeLinearize(OFT_TransformedImage2ViewbScaled));
-end
+OFT_TransformedImage2ViewbScaled(OFT_TransformedImage2ViewbScaled > 1.0) = 1.0;
 
 %% apply matrix B, i.e. going from camera to ACES domain
 
@@ -307,12 +303,6 @@ OFT_TransformedImage2ViewBConv = OFT_TransformedImage2ViewbScaled;
 OFT_TransformedImage2ViewBConv(:,:,1) = OFT_B(1,1)*OFT_TransformedImage2ViewbScaled(:,:,1) + OFT_B(1,2)*OFT_TransformedImage2ViewbScaled(:,:,2) + OFT_B(1,3)*OFT_TransformedImage2ViewbScaled(:,:,3);
 OFT_TransformedImage2ViewBConv(:,:,2) = OFT_B(2,1)*OFT_TransformedImage2ViewbScaled(:,:,1) + OFT_B(2,2)*OFT_TransformedImage2ViewbScaled(:,:,2) + OFT_B(2,3)*OFT_TransformedImage2ViewbScaled(:,:,3);
 OFT_TransformedImage2ViewBConv(:,:,3) = OFT_B(3,1)*OFT_TransformedImage2ViewbScaled(:,:,1) + OFT_B(3,2)*OFT_TransformedImage2ViewbScaled(:,:,2) + OFT_B(3,3)*OFT_TransformedImage2ViewbScaled(:,:,3);
-
-figure('Name','matrix transformed white normalized image - left/lin right/sRGB delinearized')
-if usejava('Desktop')
-	subplot(1,2,1), imshow(OFT_TransformedImage2ViewBConv);
-    subplot(1,2,2), imshow(sRGBDeLinearize(OFT_TransformedImage2ViewBConv));
-end
 
 %% scale gray to 0.18
 
@@ -329,9 +319,9 @@ else
     
     l_facTo18Gray = 0.18 ./ l_18GrayVals;
     
-%     OFT_TransformedImage2ViewBConv(:, :, 1) = l_facTo18Gray(1) .* OFT_TransformedImage2ViewBConv(:, :, 1);
-%     OFT_TransformedImage2ViewBConv(:, :, 2) = l_facTo18Gray(2) .* OFT_TransformedImage2ViewBConv(:, :, 2);
-%     OFT_TransformedImage2ViewBConv(:, :, 3) = l_facTo18Gray(3) .* OFT_TransformedImage2ViewBConv(:, :, 3);
+    OFT_TransformedImage2ViewBConv(:, :, 1) = l_facTo18Gray(1) .* OFT_TransformedImage2ViewBConv(:, :, 1);
+    OFT_TransformedImage2ViewBConv(:, :, 2) = l_facTo18Gray(2) .* OFT_TransformedImage2ViewBConv(:, :, 2);
+    OFT_TransformedImage2ViewBConv(:, :, 3) = l_facTo18Gray(3) .* OFT_TransformedImage2ViewBConv(:, :, 3);
     
     if usejava('Desktop')
         visualizecc(OFT_TransformedImage2ViewBConv, OFT_cameraImageOfTestChart_PatchLocations);
@@ -379,7 +369,7 @@ else
     
 end
 
-% now we might have a device independent color represenation in aces color domain
+% now we might have a device independent color representation in aces color domain
 
 %% convert from ACES to XYZ and to sRGB65 for viewing
 
@@ -398,7 +388,7 @@ OFT_TransformedImage2ViewBConv2XYZ2OutsRGB65(:,:,1) = OFT_MOverall(1,1)*OFT_Tran
 OFT_TransformedImage2ViewBConv2XYZ2OutsRGB65(:,:,2) = OFT_MOverall(2,1)*OFT_TransformedImage2ViewBConv(:,:,1) + OFT_MOverall(2,2)*OFT_TransformedImage2ViewBConv(:,:,2) + OFT_MOverall(2,3)*OFT_TransformedImage2ViewBConv(:,:,3);
 OFT_TransformedImage2ViewBConv2XYZ2OutsRGB65(:,:,3) = OFT_MOverall(3,1)*OFT_TransformedImage2ViewBConv(:,:,1) + OFT_MOverall(3,2)*OFT_TransformedImage2ViewBConv(:,:,2) + OFT_MOverall(3,3)*OFT_TransformedImage2ViewBConv(:,:,3);
 
-figure('Name','matrix transformed white normalized image sRGB - left/lin right/sRGB delinearized')
+figure('Name','matrix transformed white normalized image sRGB in D65 domain reillimunated - left/lin right/sRGB delinearized')
 if usejava('Desktop')
 	subplot(1,2,1),imshow(OFT_TransformedImage2ViewBConv2XYZ2OutsRGB65);
 	subplot(1,2,2),imshow(sRGBDeLinearize(OFT_TransformedImage2ViewBConv2XYZ2OutsRGB65));
@@ -416,7 +406,9 @@ if(isempty(OFT_cameraImageOfTestChart_PatchLocations))
 end
 
 if usejava('Desktop')
-	visualizecc(OFT_TransformedImage2ViewBConv,OFT_cameraImageOfTestChart_PatchLocations);
+    
+    visualizecc(sRGBDeLinearize(OFT_TransformedImage2ViewBConv2XYZ2OutsRGB65) ,OFT_cameraImageOfTestChart_PatchLocations);
+    
 end
 
 OFT_cameraImageOfTestChart_PatchColours_XYZConverted=OFT_Reference2StandardPrimaries * OFT_cameraImageOfTestChart_PatchColours;
@@ -437,8 +429,6 @@ OFT_Ww=100*(OFT_WwUnscaled./OFT_WwUnscaled(2));
 OFT_ChartImageTristimuli_NeutralsCompensated=HDM_OFT_ColorNeutralCompensations.OFT_CompensateTristimuliForDifferentWhite...
     (OFT_NeutralsCompensation, OFT_cameraImageOfTestChart_PatchColours_XYZConverted, OFT_w, OFT_Ww);
 
-OFT_ChartImageTristimuli_NeutralsCompensated = OFT_cameraImageOfTestChart_PatchColours_XYZConverted;
-
 NumberOfPatches = size(OFT_ChartImageTristimuli_NeutralsCompensated,2);
 OFT_ColorCheckerTristimuli_ColorValueParts = zeros(3,NumberOfPatches);
 
@@ -452,24 +442,7 @@ end;
 
 OFT_ChartImageTristimuli_NeutralsCompensatedNorm=OFT_ChartImageTristimuli_NeutralsCompensated;
 
-%scale patches from images for white ref patch
-%in order to have a common base for comparison
-
-% OFT_ChartImageTristimuli_NeutralsCompensatedNormScaled=OFT_ColorCheckerTristimuli_NeutralsCompensatedNorm(2,19).*(OFT_ChartImageTristimuli_NeutralsCompensatedNorm./OFT_ChartImageTristimuli_NeutralsCompensatedNorm(2,19));
-% OFT_ChartImageTristimuli_NeutralsCompensatedNorm=OFT_ChartImageTristimuli_NeutralsCompensatedNormScaled;
-% 
-% OFT_ChartImageLab4Patches=HDM_OFT_ColorConversions.OFT_CIELab(OFT_ChartImageTristimuli_NeutralsCompensatedNorm(:,k),OFT_ToLabWhite);
-% 
-% OFT_ColorCheckerTristimuli_NeutralsComp_ColorValueParts=OFT_ChartImageTristimuli_NeutralsCompensated;
-% 
-% for i=1:size(OFT_ChartImageTristimuli_NeutralsCompensated,2)
-%     
-%     normImg=OFT_ChartImageTristimuli_NeutralsCompensated(1,i)+OFT_ChartImageTristimuli_NeutralsCompensated(2,i)+OFT_ChartImageTristimuli_NeutralsCompensated(3,i);
-%     OFT_ColorCheckerTristimuli_NeutralsComp_ColorValueParts(1,i)=OFT_ChartImageTristimuli_NeutralsCompensated(1,i)/normImg;
-%     OFT_ColorCheckerTristimuli_NeutralsComp_ColorValueParts(2,i)=OFT_ChartImageTristimuli_NeutralsCompensated(2,i)/normImg;
-%     OFT_ColorCheckerTristimuli_NeutralsComp_ColorValueParts(3,i)=OFT_ChartImageTristimuli_NeutralsCompensated(3,i)/normImg;
-%     
-% end
+OFT_ToLabWhite=OFT_w;
 
 %% reference values from chart reflectances with target illumination and std observer
 
@@ -487,9 +460,8 @@ OFT_Illuminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetIlluminantSpectrum(OFT_Illumin
                     (OFT_CIEStandardObserver_SpectralCurves,...
                     OFT_Illuminant_Spectrum_1nm_CIE31Range,...
                     OFT_PatchSet_SpectralCurve);
-                
-OFT_ColorCheckerTristimuliReference_NeutralsCompensated=HDM_OFT_ColorNeutralCompensations.OFT_CompensateTristimuliForDifferentWhite...
-    (OFT_NeutralsCompensation, OFT_ColorCheckerTristimuliReference, OFT_Ww, OFT_w);
+               
+OFT_ColorCheckerTristimuliReference_NeutralsCompensated = OFT_ColorCheckerTristimuliReference;
 
 NumberOfPatches = size(OFT_ColorCheckerTristimuliReference_NeutralsCompensated,2);
 OFT_ColorCheckerTristimuli_ColorValueParts_Reference = zeros(3,NumberOfPatches);
@@ -502,82 +474,61 @@ for patchIndex = 1:(NumberOfPatches)
     OFT_ColorCheckerTristimuli_ColorValueParts_Reference(3,patchIndex) = cur(3) / sum;
 end;
 
+OFT_ColorCheckerTristimuli_NeutralsCompensatedNorm = OFT_ColorCheckerTristimuliReference_NeutralsCompensated;
 
-% OFT_Illumination_Norm=1;%//!!!trapz(OFT_CIE31_SpectralCurve_y .* OFT_D_Spectrum_1nm_CIE31Range);
-% OFT_Illumination_Scale=1;%//!!!100
-% 
-% OFT_Xw=OFT_Illumination_Scale*trapz(OFT_CIEStandardObserver_SpectralCurves(2,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:))/OFT_Illumination_Norm;
-% OFT_Yw=OFT_Illumination_Scale*trapz(OFT_CIEStandardObserver_SpectralCurves(3,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:))/OFT_Illumination_Norm;
-% OFT_Zw=OFT_Illumination_Scale*trapz(OFT_CIEStandardObserver_SpectralCurves(4,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:))/OFT_Illumination_Norm;
-% 
-% OFT_WwUnscaled=[OFT_Xw,OFT_Yw,OFT_Zw]';
-% OFT_Ww=100*(OFT_WwUnscaled./OFT_WwUnscaled(2));
-% 
-% OFT_ColorCheckerTristimuli_NeutralsCompensated=HDM_OFT_ColorNeutralCompensations.OFT_CompensateTristimuliForDifferentWhite...
-%     (OFT_NeutralsCompensation, OFT_ColorCheckerTristimuliReference, OFT_Ww, OFT_w);
-%               
-% OFT_PatchSetTristimuliNorm=100*(OFT_ColorCheckerTristimuliReference./OFT_WwUnscaled(2));                
-% OFT_ColorCheckerTristimuliReference=OFT_PatchSetTristimuliNorm;                
-%                 
-% k = 1:size(OFT_ColorCheckerTristimuliReference,2);
-% 
-% 
-% 
-% OFT_ToLabWhite=OFT_w;
-% 
-% if (strcmp(OFT_NeutralsCompensation,HDM_OFT_ColorNeutralCompensations.NoneType()))
-%     OFT_ToLabWhite=OFT_Ww;
-% end
-% 
-% OFT_ColorCheckerTristimuli_NeutralsCompensatedNorm=OFT_ColorCheckerTristimuli_NeutralsCompensated;
-% 
-% %scale patches from images for white ref patch
-% %in order to have a common base for comparison
-% 
-% OFT_ColorCheckerLab4Patches=HDM_OFT_ColorConversions.OFT_CIELab(OFT_ColorCheckerTristimuli_NeutralsCompensatedNorm(:,k),OFT_ToLabWhite);
-% 
-% OFT_ColorCheckerTristimuli_NeutralsComp_ColorValuePartsRef=OFT_ColorCheckerTristimuli_NeutralsCompensated;
-% 
-% for i=1:size(OFT_ChartImageTristimuli_NeutralsCompensated,2)
-%     
-%     normRef=OFT_ColorCheckerTristimuli_NeutralsCompensated(1,i)+OFT_ColorCheckerTristimuli_NeutralsCompensated(2,i)+OFT_ColorCheckerTristimuli_NeutralsCompensated(3,i);
-%     OFT_ColorCheckerTristimuli_NeutralsComp_ColorValuePartsRef(1,i)=OFT_ColorCheckerTristimuli_NeutralsCompensated(1,i)/normRef;
-%     OFT_ColorCheckerTristimuli_NeutralsComp_ColorValuePartsRef(2,i)=OFT_ColorCheckerTristimuli_NeutralsCompensated(2,i)/normRef;
-%     OFT_ColorCheckerTristimuli_NeutralsComp_ColorValuePartsRef(3,i)=OFT_ColorCheckerTristimuli_NeutralsCompensated(3,i)/normRef;
-%     
-% end
+%% compute Lab for reference and image patches
+
+OFT_ColorCheckerLab4Patches=HDM_OFT_ColorConversions.OFT_CIELab(OFT_ColorCheckerTristimuli_NeutralsCompensatedNorm, OFT_Ww);
+
+% before we go to Lab domain for image XYZ: scale 0.18 gray patch to same Y as reference
+
+l_XYZref4MidGray = OFT_ColorCheckerTristimuli_NeutralsCompensatedNorm(:, 22);
+
+%some bug to investigate: sometimes CCFind inverts the patch order
+if(OFT_cameraImageOfTestChart_PatchLocations(1,1) > OFT_cameraImageOfTestChart_PatchLocations(24,1))
+
+    OFT_ChartImageTristimuli_NeutralsCompensatedNorm = fliplr(OFT_ChartImageTristimuli_NeutralsCompensatedNorm);
+
+end
+
+l_XYZimg4MidGray = OFT_ChartImageTristimuli_NeutralsCompensatedNorm(:, 22);
+
+l_scale4Ref = l_XYZref4MidGray ./ l_XYZimg4MidGray;
+
+OFT_ChartImageTristimuli_NeutralsCompensatedNorm(1, :) = OFT_ChartImageTristimuli_NeutralsCompensatedNorm(1, :).* l_scale4Ref(1,1);
+OFT_ChartImageTristimuli_NeutralsCompensatedNorm(2, :) = OFT_ChartImageTristimuli_NeutralsCompensatedNorm(2, :).* l_scale4Ref(2,1);
+OFT_ChartImageTristimuli_NeutralsCompensatedNorm(3, :) = OFT_ChartImageTristimuli_NeutralsCompensatedNorm(3, :).* l_scale4Ref(3,1);
+
+OFT_ChartImageLab4Patches=HDM_OFT_ColorConversions.OFT_CIELab(OFT_ChartImageTristimuli_NeutralsCompensatedNorm,OFT_ToLabWhite);
     
 %% compute delta E 
 
-% OFT_PatchSize=size(OFT_ChartImageLab4Patches,2);
-% OFT_DeltaE4Patches=zeros(OFT_PatchSize,1);
-% 
-% for curPatchIndex=1:size(OFT_DeltaE4Patches)%//!!!optim
-%     
-% %     OFT_DeltaE4Patches(curPatchIndex)=...        
-% %         sqrt(((OFT_ChartImageLab4Patches(1,curPatchIndex)-OFT_ColorCheckerLab4Patches(1,curPatchIndex))^2 +...
-% %         (OFT_ChartImageLab4Patches(2,curPatchIndex)-OFT_ColorCheckerLab4Patches(2,curPatchIndex))^2 +...
-% %         (OFT_ChartImageLab4Patches(3,curPatchIndex)-OFT_ColorCheckerLab4Patches(3,curPatchIndex))^2));
-%     
-%     OFT_DeltaE4Patches(curPatchIndex)=...        
-%         sqrt(((OFT_ChartImageLab4Patches(2,curPatchIndex)-OFT_ColorCheckerLab4Patches(2,curPatchIndex))^2 +...
-%         (OFT_ChartImageLab4Patches(3,curPatchIndex)-OFT_ColorCheckerLab4Patches(3,curPatchIndex))^2));
-% 
-% end
-% 
-% OFT_MeanDeltaE4Patches=mean(OFT_DeltaE4Patches);
-% 
-% deltaEStr=cellstr( num2str(OFT_DeltaE4Patches,'%4.3e\n') );
-% 
-% labelsAnnot=labels2;
-% for cur=1:size(labelsAnnot)
-%     labelsAnnot(cur)=strcat(labelsAnnot(cur),'-- ');
-% end
-% 
-% oft_cld=strcat(labelsAnnot,deltaEStr);
-% oft_cld{end+1}='----------';
-% oft_cld{end+1}='mean delta C:';
-% oft_cld{end+1}=num2str(OFT_MeanDeltaE4Patches);
+l_deltaE2000 = deltaE2000(OFT_ColorCheckerLab4Patches', OFT_ChartImageLab4Patches');
+
+l_rnames = {'L ref','a ref','b ref','L','a','b','delta E 2000'};
+
+l_f = figure('Name','reference Lab values for patches (patch reflectances from BabelColor) and camera Lab values for patches for profiled image');
+l_t = uitable(l_f ,'Data', [OFT_ColorCheckerLab4Patches', OFT_ChartImageLab4Patches', l_deltaE2000'],...
+            'ColumnName',l_rnames, ... 
+            'Position',[0 0 100 100],...
+            'RowName',l_cnames);
+l_t.Position(3) = l_t.Extent(3);
+l_t.Position(4) = l_t.Extent(4);
+
+OFT_MeanDeltaE4Patches=mean(l_deltaE2000);
+
+deltaEStr=cellstr( num2str(l_deltaE2000','%4.3e\n') );
+
+labels2 = cellstr( num2str([1:24]') );
+labelsAnnot=labels2;
+for cur=1:size(labelsAnnot)
+    labelsAnnot(cur)=strcat(labelsAnnot(cur),'-- ');
+end
+
+oft_cld=strcat(labelsAnnot,deltaEStr);
+oft_cld{end+1}='----------';
+oft_cld{end+1}='mean delta E 2000:';
+oft_cld{end+1}=num2str(OFT_MeanDeltaE4Patches);
 
 %% getting spectral curve
 
@@ -616,13 +567,15 @@ xlabel('x')
 ylabel('y')
 legend({'','converted from estimated matrix transformed values','reference from babelcolor'})
 
-% annotation('textbox', [.15 .8, .1, .1],...
-%            'String', oft_cld,'FitHeightToText','on');
+annotation('textbox', [.15 .8, .1, .1],...
+           'String', oft_cld,'FitHeightToText','on');
 
 title('CIE31 x y color value parts');
 
+OFT_TransformedImage2View = sRGBDeLinearize(OFT_TransformedImage2ViewBConv2XYZ2OutsRGB65);
+
 if(exist('OFT_In_ReferenceImage2View','var'))
-    HDM_OFT_CompareIDTProfiledImage(OFT_In_ReferenceImage2View,OFT_TransformedImage2View);
+    % HDM_OFT_CompareIDTProfiledImage(OFT_In_ReferenceImage2View, OFT_TransformedImage2View);
 end
 
 HDM_OFT_Utils.OFT_DispTitle('evaluate transformed chart image succesfully finished');

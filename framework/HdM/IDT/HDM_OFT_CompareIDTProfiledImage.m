@@ -4,7 +4,7 @@ OFT_Env=HDM_OFT_InitEnvironment();
 
 HDM_OFT_Utils.OFT_DispTitle('compare transformed image');
 
-outputVideo = VideoWriter(fullfile(OFT_Env.OFT_ProcessPath,'Eval2Reference.avi'));
+outputVideo = VideoWriter(fullfile(OFT_Env.OFT_ProcessPath,'Eval2Reference.avi'), 'Uncompressed AVI');
 outputVideo.FrameRate = 24;
 open(outputVideo);
 
