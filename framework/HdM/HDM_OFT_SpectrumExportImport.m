@@ -43,7 +43,9 @@ classdef HDM_OFT_SpectrumExportImport
                 o_spectrum = [l_w; l_i];
                 
                 l_nmBase=360:1:830;
-                o_spectrum = [l_nmBase; interp1(o_spectrum(1,:), o_spectrum(2,:),l_nmBase,'pchip',0)];
+                l_rawIntensity = interp1(o_spectrum(1,:), o_spectrum(2,:),l_nmBase,'pchip',0);
+                
+                o_spectrum = [l_nmBase; 1 / max(l_rawIntensity) * l_rawIntensity];
                 
                 return;
                             
@@ -77,7 +79,9 @@ classdef HDM_OFT_SpectrumExportImport
                     end
                     
                     l_nmBase=360:1:830;
-                    o_spectrum = [l_nmBase; interp1(o_spectrum(1,:), o_spectrum(2,:),l_nmBase,'pchip',0)];
+                    l_rawIntensity = interp1(o_spectrum(1,:), o_spectrum(2,:),l_nmBase,'pchip',0);
+                    
+                    o_spectrum = [l_nmBase; 1 / max(l_rawIntensity) * l_rawIntensity];
                     return;
 
                 catch
@@ -109,7 +113,9 @@ classdef HDM_OFT_SpectrumExportImport
                 end
                 
                 l_nmBase=360:1:830;
-                o_spectrum = [l_nmBase; interp1(o_spectrum(1,:), o_spectrum(2,:),l_nmBase,'pchip',0)];
+                l_rawIntensity = interp1(o_spectrum(1,:), o_spectrum(2,:),l_nmBase,'pchip',0);
+                
+                o_spectrum = [l_nmBase; 1 / max(l_rawIntensity) * l_rawIntensity];
                 
                 catch %%csv mimics excel but csv with non numeric data, which matlab does not support via csvread
                     
@@ -123,7 +129,9 @@ classdef HDM_OFT_SpectrumExportImport
                     o_spectrum = cell2mat([l_table(1, 2 : size(l_table, 2)); l_table(2, 2 : size(l_table, 2))]);
                     
                     l_nmBase=360:1:830;
-                    o_spectrum = [l_nmBase; interp1(o_spectrum(1,:), o_spectrum(2,:),l_nmBase,'pchip',0)];
+                    l_rawIntensity = interp1(o_spectrum(1,:), o_spectrum(2,:),l_nmBase,'pchip',0);
+                
+                    o_spectrum = [l_nmBase; 1 / max(l_rawIntensity) * l_rawIntensity];
                     
                 end
                 
