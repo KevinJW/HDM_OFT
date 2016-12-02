@@ -41,7 +41,28 @@ l_IntenityAgainstWavelength = HDM_OFT_SpectrumExportImport.ImportSpectrum(i_Spec
 
 %% average to close peaks
 
-[peak_location, peak_value] = AverageToClosePeaks(peak_location, peak_value, 2);
+% [peak_location, peak_value] = AverageToClosePeaks(peak_location, peak_value, 2);
+
+l_break = 0;
+
+while l_break == 0
+    
+    [peak_location, peak_value] = ...
+        AverageToClosePeaks(peak_location, peak_value, 2);
+
+    l_ar = unique(uint16(peak_location));
+       
+    if size(l_ar, 2) < size(peak_location, 2)
+        
+        l_break = 0;
+        
+    else
+        
+        l_break = 1;
+        
+    end
+
+end
 
 %% create wavelength LUT
     
@@ -70,7 +91,7 @@ for peakIndex=1:size(peak_value,2)
     OFT_ReferencePeaksWaveLengths(1,peakIndex)=r;    
     polyval(a,r);
     
-    if(r >425 && r <700)
+    if(r >425 && r < 650)
         
         OFT_ReferencePeaksWaveLengthsFiltered = [OFT_ReferencePeaksWaveLengthsFiltered, r];
         OFT_ReferencePeaksWaveLengthsValuesFiltered = [OFT_ReferencePeaksWaveLengthsValuesFiltered, peak_value(1, peakIndex)];
@@ -224,7 +245,7 @@ OFT_Spectrum_MeanOfRows=OFT_Spectrum_MeanOfRows/max(OFT_Spectrum_MeanOfRows(1,:)
 OFT_Spectrum_MeanOfRowsFlipped=fliplr(OFT_Spectrum_MeanOfRows);
 
 
-threshold=0.15;%//!!! 0.2 for BL75 0.12 for zup 40
+threshold=0.1;%//!!! 0.2 for BL75 0.12 for zup 40
 % matlab based find peaks from certain package
 %[OFT_SpectrumImage_peak_valueMat, OFT_SpectrumImage_peak_locationMat] = ...
 %    findpeaks(OFT_Spectrum_MeanOfRows,'MINPEAKHEIGHT',threshold * max(OFT_Spectrum_MeanOfRows),...
