@@ -222,7 +222,10 @@ OFT_CIEStandardObserver_SpectralCurves=HDM_OFT_CIEStandard.GetStandardObserverCu
 
 figure 
 subplot(2,2,1)
-plot(OFT_CIEStandardObserver_SpectralCurves(1,:),OFT_CIEStandardObserver_SpectralCurves(2:4,:))
+plot(OFT_CIEStandardObserver_SpectralCurves(1,:),OFT_CIEStandardObserver_SpectralCurves(2,:),'r', ...
+     OFT_CIEStandardObserver_SpectralCurves(1,:),OFT_CIEStandardObserver_SpectralCurves(3,:),'g', ...
+     OFT_CIEStandardObserver_SpectralCurves(1,:),OFT_CIEStandardObserver_SpectralCurves(4,:),'b')
+%plot(OFT_CIEStandardObserver_SpectralCurves(1,:),OFT_CIEStandardObserver_SpectralCurves(2:4,:))
 %semilogy(OFT_CIEStandardObserver_SpectralCurves(1,:),OFT_CIEStandardObserver_SpectralCurves(2:4,:))
 xlabel('wavelength in nm')
 ylabel('relative sensitivity of standard observer')
@@ -312,18 +315,18 @@ function [OFT_PatchSetCameraTristimuli, OFT_IDT_b] = ComputeCameraTristimuli4Pat
         OFT_CameraSpectralResponse_1nm_CIE31Range = HDM_OFT_GetSpectralResponse(OFT_MeasuredCameraResponseFileName);
 
         subplot(2,2,4)
-        plot(OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(4,:),...
-            OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(3,:),...
-            OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(2,:));
+        plot(OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(4,:),'b', ...
+            OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(3,:),'g', ...
+            OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(2,:),'r');
         xlabel('wavelength in nm')
         ylabel('relative spectral response')
         legend({'b','g','r'})
         %title('spectral response of camera system');
         
         figure
-        plot(OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(4,:),...
-            OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(3,:),...
-            OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(2,:));
+        plot(OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(4,:),'b', ...
+            OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(3,:),'g', ...
+            OFT_CameraSpectralResponse_1nm_CIE31Range(1,:),OFT_CameraSpectralResponse_1nm_CIE31Range(2,:),'r');
         xlabel('wavelength in nm')
         ylabel('relative spectral response')
         legend({'b','g','r'})
