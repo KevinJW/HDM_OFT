@@ -1,6 +1,15 @@
-function out=HDM_OFT_GetIlluminantSpectrum(OFT_IlluminantSpectrum)
+function out = HDM_OFT_GetIlluminantSpectrum(OFT_IlluminantSpectrum)
 
-if(isempty(strfind(OFT_IlluminantSpectrum,'.')))
+if size(OFT_IlluminantSpectrum, 1) == 2
+    
+    out = OFT_IlluminantSpectrum;   
+    return;
+    
+end
+
+l_res = strfind(OFT_IlluminantSpectrum,'.');
+
+if(isempty(l_res))
     
     val = str2num(OFT_IlluminantSpectrum);
     

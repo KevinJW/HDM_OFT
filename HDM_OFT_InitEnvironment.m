@@ -25,10 +25,22 @@ OFT_Env.OFT_ProcessPath=strcat(OFT_IDTProcessorPath,'/workingDir/IDTProcess');
 OFT_Env.OFT_StatisticsPath=strcat(OFT_IDTProcessorPath,'/workingDir/IDTProcess');
 
 if(~exist('OFT_In_Test','var'))
-    OFT_Env.OFT_ProcessPath=strcat(OFT_Env.OFT_ProcessPath,'/',OFT_In_ProcessSubDir);
+    
+    if OFT_In_ProcessSubDir(1,1) == '/'
+        
+        OFT_Env.OFT_ProcessPath = OFT_In_ProcessSubDir;
+    
+    else
+        
+        OFT_Env.OFT_ProcessPath = strcat(OFT_Env.OFT_ProcessPath,'/',OFT_In_ProcessSubDir);
+        
+    end
+    
 else
+    
     OFT_Env.OFT_ProcessPath=strcat(OFT_Env.OFT_ProcessPath,'/test');
     OFT_Env.OFT_StatisticsPath=strcat(OFT_Env.OFT_StatisticsPath,'/testStat');
+    
 end
 
 OFT_Out_Env=OFT_Env;

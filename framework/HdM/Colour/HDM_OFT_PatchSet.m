@@ -13,9 +13,35 @@ classdef HDM_OFT_PatchSet
                 OFT_MeasuredPatchFileName=OFT_PatchSetType;
             end
             
-            %//!!!OFT_JoensuuFiles = untar('F:\usr\fuchs\OFTP\002Development\MatLab\framework\COTS\Joensuu\forest380_850_5.tar.gz',OFT_Env.OFT_ProcessPath);
-            %//!!!OFT_JoensuuFiles = untar('ftp://ftp.cs.joensuu.fi/pub/color/spectra/forest/forest380_850_5.tar.gz',OFT_Env.OFT_ProcessPath);
+            if(strfind(lower(OFT_MeasuredPatchFileName), '.asc'))
 
+                l_objectReflectances = csvread(OFT_MeasuredPatchFileName);
+                
+                l_joensuuIndexMax = 1269;
+                
+                l_joensuuNumberOfPatches = 2;
+                
+                l_CIESampleRange = 360:1:830;
+                    
+                l_PatchReflectance = zeros(1 + l_joensuuNumberOfPatches, size(l_CIESampleRange,2));
+
+                l_PatchReflectance(1, :) = l_CIESampleRange;
+                
+                for cur = 1  : l_joensuuIndexMax 
+
+                    l_PatchReflectanceRaw = l_objectReflectances((cur - 1) * 421 + 1 : cur * 421);
+                    l_PatchReflectanceRaw = [380:800; l_PatchReflectanceRaw'];
+                    
+                    l_PatchReflectance(cur + 1, :) = interp1(l_PatchReflectanceRaw(1,:), l_PatchReflectanceRaw(2,:), l_CIESampleRange,'pchip',0);
+                
+                end
+                
+                OFT_PatchSet_SpectralCurve = l_PatchReflectance;
+                
+                return;
+                
+            end
+            
             if(strfind(lower(OFT_MeasuredPatchFileName), '.xls'))
 
                 [oft_ndata, oft_text, oft_alldata] =xlsread(OFT_MeasuredPatchFileName);
