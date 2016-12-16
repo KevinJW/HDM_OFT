@@ -263,19 +263,59 @@ threshold=0.1;%//!!! 0.2 for BL75 0.12 for zup 40
     threshold * max(OFT_Spectrum_MeanOfRows),...
     false);
 
+l_break = 0;
+
+while l_break == 0
+    
+    [OFT_SpectrumImage_peak_location, OFT_SpectrumImage_peak_value] = ...
+        AverageToClosePeaks(OFT_SpectrumImage_peak_location, OFT_SpectrumImage_peak_value, 30);
+
+    l_ar = unique(uint16(OFT_SpectrumImage_peak_location));
+       
+    if size(l_ar, 2) < size(OFT_SpectrumImage_peak_location, 2)
+        
+        l_break = 0;
+        
+    else
+        
+        l_break = 1;
+        
+    end
+
+end
+
 [OFT_SpectrumImage_peak_valueFlipped, OFT_SpectrumImage_peak_locationFlipped] = HDM_OFT_findpeaks(OFT_Spectrum_MeanOfRowsFlipped,...
     2 * size(OFT_ReferencePeaksWaveLengths, 2),10,100,...
     threshold * max(OFT_Spectrum_MeanOfRowsFlipped),...
     false);
+
+l_break = 0;
+
+while l_break == 0
+    
+    [OFT_SpectrumImage_peak_locationFlipped, OFT_SpectrumImage_peak_valueFlipped] = ...
+        AverageToClosePeaks(OFT_SpectrumImage_peak_locationFlipped, OFT_SpectrumImage_peak_valueFlipped, 30);
+
+    l_ar = unique(uint16(OFT_SpectrumImage_peak_locationFlipped));
+       
+    if size(l_ar, 2) < size(OFT_SpectrumImage_peak_locationFlipped, 2)
+        
+        l_break = 0;
+        
+    else
+        
+        l_break = 1;
+        
+    end
+
+end
 
 l_OFT_Spectrum_MeanOfRowsFiltered = sgolayfilt(OFT_Spectrum_MeanOfRows, 3, 11);
     
 width=size(OFT_SpectrumImageGray,2);    
 OFT_SpectrumImage_peak_locationFlipped=(-1*OFT_SpectrumImage_peak_locationFlipped)+width;
 
-shiftC=0;%//!!!18 f?r BL75 und 5 fuer ZP40 empiric for first spectroscope prototype
-OFT_SpectrumImage_peak_location=0.5*(OFT_SpectrumImage_peak_location+OFT_SpectrumImage_peak_locationFlipped)+shiftC;
-
+OFT_SpectrumImage_peak_location = 0.5 * (OFT_SpectrumImage_peak_location + OFT_SpectrumImage_peak_locationFlipped);
 l_break = 0;
 
 while l_break == 0
@@ -470,7 +510,14 @@ while l_peakIndex <= (size(l_B, 2) - 1)
         
         l_peakIndex = l_peakIndex + 1;
         
-    else
+    elseif(abs(l_B(2, l_peakIndex) - l_B(2, l_peakIndex + 1)) > 0.5)
+        
+        l_ReferencePeaksToCloseWaveLengthsFiltered = [l_ReferencePeaksToCloseWaveLengthsFiltered, l_B(1, l_peakIndex)];
+        l_ReferencePeaksToCloseWaveLengthsValuesFiltered = [l_ReferencePeaksToCloseWaveLengthsValuesFiltered, l_B(2, l_peakIndex)];
+        
+        l_peakIndex = l_peakIndex + 1;
+        
+    else    
         
         l_ReferencePeaksToCloseWaveLengthsFiltered = [l_ReferencePeaksToCloseWaveLengthsFiltered, (l_B(1, l_peakIndex) + l_B(1, l_peakIndex + 1)) / 2.0];
         l_ReferencePeaksToCloseWaveLengthsValuesFiltered = [l_ReferencePeaksToCloseWaveLengthsValuesFiltered, (l_B(2, l_peakIndex) + l_B(2, l_peakIndex + 1)) / 2.0];
@@ -482,6 +529,11 @@ while l_peakIndex <= (size(l_B, 2) - 1)
 end
 
 if (abs(l_B(1, size(l_B, 2)) - l_B(1, size(l_B, 2) - 1)) > i_width)
+    
+    l_ReferencePeaksToCloseWaveLengthsFiltered = [l_ReferencePeaksToCloseWaveLengthsFiltered, l_B(1, size(l_B, 2))];
+    l_ReferencePeaksToCloseWaveLengthsValuesFiltered = [l_ReferencePeaksToCloseWaveLengthsValuesFiltered, l_B(2, size(l_B, 2))];
+    
+elseif(abs(l_B(2, size(l_B, 2)) - l_B(2, size(l_B, 2) - 1)) > 0.5)
     
     l_ReferencePeaksToCloseWaveLengthsFiltered = [l_ReferencePeaksToCloseWaveLengthsFiltered, l_B(1, size(l_B, 2))];
     l_ReferencePeaksToCloseWaveLengthsValuesFiltered = [l_ReferencePeaksToCloseWaveLengthsValuesFiltered, l_B(2, size(l_B, 2))];
