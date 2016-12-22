@@ -1,4 +1,4 @@
-function out=HDM_OFT_LineCalibrationPn...
+function [out, o_lineR, o_lineG, o_lineB]=HDM_OFT_LineCalibrationPn...
     (i_SpectrometerMeasurement, i_CameraMeasurement, i_PreLinearisationCurve, i_maskImage)
 
 OFT_Env=HDM_OFT_InitEnvironment();
@@ -38,6 +38,15 @@ l_IntenityAgainstWavelength = HDM_OFT_SpectrumExportImport.ImportSpectrum(i_Spec
     0.2 * max(l_IntenityAgainstWavelength(2,:)),...
     false);
 
+[l_peaklocs, l_sorter] = sort(peak_location);
+l_amps = zeros(size(peak_value));
+l_npeaks = length(l_peaklocs);
+for cur = 1:l_npeaks,
+    l_amps(:,cur) = peak_value(:, l_sorter(cur));
+end;
+
+peak_value = l_amps;
+peak_location = l_peaklocs;
 
 %% average to close peaks
 
@@ -48,7 +57,7 @@ l_break = 0;
 while l_break == 0
     
     [peak_location, peak_value] = ...
-        AverageToClosePeaks(peak_location, peak_value, 2);
+        AverageToClosePeaks(peak_location, peak_value, 6);
 
     l_ar = unique(uint16(peak_location));
        
@@ -215,6 +224,9 @@ OFT_SpectrumROI_Top = round(l_boundingBox4MaxArea(2));
 OFT_SpectrumROI_Bottom = round(l_boundingBox4MaxArea(2) + l_boundingBox4MaxArea(4));
 
 OFT_Spectrum_MeanOfRows = zeros(1, size(OFT_SpectrumImageGray, 2));
+OFT_Spectrum_MeanOfRowsR = zeros(1, size(OFT_SpectrumImageGray, 2));
+OFT_Spectrum_MeanOfRowsG = zeros(1, size(OFT_SpectrumImageGray, 2));
+OFT_Spectrum_MeanOfRowsB = zeros(1, size(OFT_SpectrumImageGray, 2));
 OFT_Spectrum_TopRow = double(OFT_SpectrumImageGray(OFT_SpectrumROI_Top, :));
 OFT_Spectrum_BottomRow = double(OFT_SpectrumImageGray(OFT_SpectrumROI_Bottom, :));
     
@@ -234,16 +246,44 @@ s2 = (OFT_Spectrum_BottomRow - mean(OFT_Spectrum_BottomRow)) / std(OFT_Spectrum_
 % subplot(2,2,2),imshow(OFT_SpectrumImageIntensity);
 %//!!!subplot(2,2,3),imshow(imcomplement(imrotate(OFT_SpectrumImageIntensity,OFT_LineCaliTilt)));
 
-for R=OFT_SpectrumROI_Top:OFT_SpectrumROI_Bottom
-    cur=OFT_SpectrumImageGray(R,:);
-    add=OFT_Spectrum_MeanOfRows(1,:);
-    OFT_Spectrum_MeanOfRows=(double(add)+double(cur));
+for R = OFT_SpectrumROI_Top : OFT_SpectrumROI_Bottom
+    
+    cur = OFT_SpectrumImageGray(R,:);
+    add = OFT_Spectrum_MeanOfRows(1,:);
+    OFT_Spectrum_MeanOfRows = (double(add) + double(cur));
+    
+    cur = OFT_SpectrumImageR(R,:);
+    add = OFT_Spectrum_MeanOfRowsR(1,:);
+    OFT_Spectrum_MeanOfRowsR = (double(add) + double(cur));
+    
+    cur = OFT_SpectrumImageG(R,:);
+    add = OFT_Spectrum_MeanOfRowsG(1,:);
+    OFT_Spectrum_MeanOfRowsG = (double(add) + double(cur));
+    
+    cur = OFT_SpectrumImageB(R,:);
+    add = OFT_Spectrum_MeanOfRowsB(1,:);
+    OFT_Spectrum_MeanOfRowsB = (double(add) + double(cur));
+    
 end
+
+o_lineR = OFT_Spectrum_MeanOfRowsR;
+o_lineG = OFT_Spectrum_MeanOfRowsG;
+o_lineB = OFT_Spectrum_MeanOfRowsB;
 
 OFT_Spectrum_MeanOfRows=OFT_Spectrum_MeanOfRows/cast((OFT_SpectrumROI_Bottom-OFT_SpectrumROI_Top),'like',OFT_Spectrum_MeanOfRows);
 OFT_Spectrum_MeanOfRows=OFT_Spectrum_MeanOfRows/max(OFT_Spectrum_MeanOfRows(1,:));
 OFT_Spectrum_MeanOfRowsFlipped=fliplr(OFT_Spectrum_MeanOfRows);
 
+subplot(2,2,4)
+plot(s1,'g');
+hold on
+plot(s2,'b');
+hold on
+plot(OFT_Spectrum_MeanOfRows(1,:)/max(OFT_Spectrum_MeanOfRows(1,:)),'r');
+legend({'Top Row:(i-mean(I))/\sigma (I)','Bottom Row:(i-mean(I))/\sigma (I)','All Rows: normalized mean value'})
+xlabel('horicontal pixel index')
+ylabel('pixel value')
+title('detected lines (vertical gray bars)');
 
 threshold=0.1;%//!!! 0.2 for BL75 0.12 for zup 40
 % matlab based find peaks from certain package
@@ -262,6 +302,16 @@ threshold=0.1;%//!!! 0.2 for BL75 0.12 for zup 40
     2 * size(OFT_ReferencePeaksWaveLengths, 2),10,100,...
     threshold * max(OFT_Spectrum_MeanOfRows),...
     false);
+
+[l_peaklocs, l_sorter] = sort(OFT_SpectrumImage_peak_location);
+l_amps = zeros(size(OFT_SpectrumImage_peak_value));
+l_npeaks = length(l_peaklocs);
+for cur = 1:l_npeaks,
+    l_amps(:,cur) = OFT_SpectrumImage_peak_value(:, l_sorter(cur));
+end;
+
+OFT_SpectrumImage_peak_value = l_amps;
+OFT_SpectrumImage_peak_location = l_peaklocs;
 
 l_break = 0;
 
@@ -289,6 +339,16 @@ end
     threshold * max(OFT_Spectrum_MeanOfRowsFlipped),...
     false);
 
+[l_peaklocs, l_sorter] = sort(OFT_SpectrumImage_peak_locationFlipped);
+l_amps = zeros(size(OFT_SpectrumImage_peak_valueFlipped));
+l_npeaks = length(l_peaklocs);
+for cur = 1:l_npeaks,
+    l_amps(:,cur) = OFT_SpectrumImage_peak_valueFlipped(:, l_sorter(cur));
+end;
+
+OFT_SpectrumImage_peak_valueFlipped = l_amps;
+OFT_SpectrumImage_peak_locationFlipped = l_peaklocs;
+
 l_break = 0;
 
 while l_break == 0
@@ -315,7 +375,7 @@ l_OFT_Spectrum_MeanOfRowsFiltered = sgolayfilt(OFT_Spectrum_MeanOfRows, 3, 11);
 width=size(OFT_SpectrumImageGray,2);    
 OFT_SpectrumImage_peak_locationFlipped=(-1*OFT_SpectrumImage_peak_locationFlipped)+width;
 
-OFT_SpectrumImage_peak_location = 0.5 * (OFT_SpectrumImage_peak_location + OFT_SpectrumImage_peak_locationFlipped);
+OFT_SpectrumImage_peak_location = 0.5 * (OFT_SpectrumImage_peak_location + fliplr(OFT_SpectrumImage_peak_locationFlipped));
 l_break = 0;
 
 while l_break == 0
@@ -348,15 +408,25 @@ for cur = 1 : size(x, 2)
       
 end
 
-if OFT_SpectrumImage_peak_location(1,1) > OFT_SpectrumImage_peak_location(1, 2)
+[l_amps, l_sorter] = sort(OFT_SpectrumImage_peak_value);
+l_peaklocs = zeros(size(OFT_SpectrumImage_peak_location));
+l_npeaks = length(l_amps);
+for cur = 1:l_npeaks,
+    l_peaklocs(:,cur) = OFT_SpectrumImage_peak_location(:, l_sorter(cur));
+end;
+
+OFT_SpectrumImage_peak_value_IntensitySorted = fliplr(l_amps);
+OFT_SpectrumImage_peak_location_IntensitySorted = fliplr(l_peaklocs);
+
+if OFT_SpectrumImage_peak_location_IntensitySorted(1,1) > OFT_SpectrumImage_peak_location_IntensitySorted(1, 2)
     
-    l_lGreenPeekPos = find(l_intensity4x == OFT_SpectrumImage_peak_value(1, 2));
-    l_rRedPeekPos = find(l_intensity4x == OFT_SpectrumImage_peak_value(1, 1));
+    l_lGreenPeekPos = find(l_intensity4x == OFT_SpectrumImage_peak_value_IntensitySorted(1, 2));
+    l_rRedPeekPos = find(l_intensity4x == OFT_SpectrumImage_peak_value_IntensitySorted(1, 1));
     
 else
     
-    l_lGreenPeekPos = find(l_intensity4x == OFT_SpectrumImage_peak_value(1, 1));
-    l_rRedPeekPos = find(l_intensity4x == OFT_SpectrumImage_peak_value(1, 2));    
+    l_lGreenPeekPos = find(l_intensity4x == OFT_SpectrumImage_peak_value_IntensitySorted(1, 1));
+    l_rRedPeekPos = find(l_intensity4x == OFT_SpectrumImage_peak_value_IntensitySorted(1, 2));    
     
 end 
 
@@ -371,15 +441,25 @@ for cur = 1 : size(v, 2)
       
 end
 
-if OFT_ReferencePeaksWaveLengths(1,1) > OFT_ReferencePeaksWaveLengths(1, 2)
+[l_amps, l_sorter] = sort(OFT_ReferencePeaksWaveLengthsValuesFiltered);
+l_peaklocs = zeros(size(OFT_ReferencePeaksWaveLengths));
+l_npeaks = length(l_amps);
+for cur = 1:l_npeaks,
+    l_peaklocs(:,cur) = OFT_ReferencePeaksWaveLengths(:, l_sorter(cur));
+end;
+
+OFT_ReferencePeaksWaveLengthsValuesFiltered_IntensitySorted = fliplr(l_amps);
+OFT_ReferencePeaksWaveLengths_IntensitySorted = fliplr(l_peaklocs);
+
+if OFT_ReferencePeaksWaveLengths_IntensitySorted(1,1) > OFT_ReferencePeaksWaveLengths_IntensitySorted(1, 2)
     
-    l_lGreenPeekPosRef = find(l_intensity4v == OFT_ReferencePeaksWaveLengthsValuesFiltered(1, 2));
-    l_rRedPeekPosRef = find(l_intensity4v == OFT_ReferencePeaksWaveLengthsValuesFiltered(1, 1));
+    l_lGreenPeekPosRef = find(l_intensity4v == OFT_ReferencePeaksWaveLengthsValuesFiltered_IntensitySorted(1, 2));
+    l_rRedPeekPosRef = find(l_intensity4v == OFT_ReferencePeaksWaveLengthsValuesFiltered_IntensitySorted(1, 1));
     
 else
     
-    l_lGreenPeekPosRef = find(l_intensity4v == OFT_ReferencePeaksWaveLengthsValuesFiltered(1, 1));
-    l_rRedPeekPosRef = find(l_intensity4v == OFT_ReferencePeaksWaveLengthsValuesFiltered(1, 2));    
+    l_lGreenPeekPosRef = find(l_intensity4v == OFT_ReferencePeaksWaveLengthsValuesFiltered_IntensitySorted(1, 1));
+    l_rRedPeekPosRef = find(l_intensity4v == OFT_ReferencePeaksWaveLengthsValuesFiltered_IntensitySorted(1, 2));    
     
 end 
 
@@ -416,30 +496,11 @@ v = v1;
 l_indexOfLastUsedRedLine = size(v, 2);
 OFT_SpectrumImagePixelColumnIndex=interp1(x(1:l_indexOfLastUsedRedLine), v(1:l_indexOfLastUsedRedLine), 1 : 1 : size(OFT_SpectrumImageGray, 2),'linear','extrap');%//!!!'linear',
 
-l_WaveLengthOfHorizontalPixelCoordinatePolynomial = polyfit(x(1:l_indexOfLastUsedRedLine),v(1:l_indexOfLastUsedRedLine),2);
+l_WaveLengthOfHorizontalPixelCoordinatePolynomial = polyfit(x(1:l_indexOfLastUsedRedLine),v(1:l_indexOfLastUsedRedLine), 1);
 
-l_WaveLengthOfHorizontalPixelCoordinate = zeros(size(OFT_SpectrumImageGray, 2), 1)';
+l_WaveLengthOfHorizontalPixelCoordinate = polyval(l_WaveLengthOfHorizontalPixelCoordinatePolynomial, 1 : size(OFT_SpectrumImageGray, 2));
 
-for cur = 1 : size(OFT_SpectrumImageGray, 2)
-   
-    l_WaveLengthOfHorizontalPixelCoordinate(cur) = l_WaveLengthOfHorizontalPixelCoordinatePolynomial(1) * cur * cur ...
-                                                   + l_WaveLengthOfHorizontalPixelCoordinatePolynomial(2) * cur ...
-                                                   + l_WaveLengthOfHorizontalPixelCoordinatePolynomial(3);
-    
-end
-
-%//!!!OFT_SpectrumImagePixelColumnIndex = l_WaveLengthOfHorizontalPixelCoordinate;
-
-subplot(2,2,4)
-plot(s1,'g');
-hold on
-plot(s2,'b');
-hold on
-plot(OFT_Spectrum_MeanOfRows(1,:)/max(OFT_Spectrum_MeanOfRows(1,:)),'r');
-legend({'Top Row:(i-mean(I))/\sigma (I)','Bottom Row:(i-mean(I))/\sigma (I)','All Rows: normalized mean value'})
-xlabel('horicontal pixel index')
-ylabel('pixel value')
-title('detected lines (vertical gray bars)');
+OFT_SpectrumImagePixelColumnIndex = l_WaveLengthOfHorizontalPixelCoordinate;
 
 %%found lines in image
 
@@ -546,6 +607,16 @@ l_Bout = l_PeakMatrixToClosePeaksAveraged(:,l_Iout);
 
 o_Peak_value = l_Bout(1, :);
 o_Peak_location = l_Bout(2, :);
+
+[l_peaklocs, l_sorter] = sort(o_Peak_location);
+l_amps = zeros(size(o_Peak_value));
+l_npeaks = length(l_peaklocs);
+for cur = 1:l_npeaks,
+    l_amps(:,cur) = o_Peak_value(:, l_sorter(cur));
+end;
+
+o_Peak_value = l_amps;
+o_Peak_location = l_peaklocs;
 
 end
 

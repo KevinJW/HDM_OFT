@@ -338,7 +338,8 @@ function [OFT_PatchSetCameraTristimuli, OFT_IDT_b] = ComputeCameraTristimuli4Pat
         OFT_CAM_Zw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(4,:) .* OFT_TargetIlluminant_Spectrum_1nm_CIE31Range(2,:));
 
         OFT_CAM_WwUnscaled = [OFT_CAM_Xw;OFT_CAM_Yw;OFT_CAM_Zw];               
-        OFT_IDT_b=1./OFT_CAM_WwUnscaled;
+        OFT_IDT_b = 1./OFT_CAM_WwUnscaled;
+        OFT_IDT_b = OFT_IDT_b./OFT_IDT_b(2);
 
         %% 4.7.6 compute white balanced linearized camera system response values of training colours
         HDM_OFT_Utils.OFT_DispTitle('4.7.6 compute white balanced linearized camera system response values of training colours');

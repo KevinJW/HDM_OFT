@@ -114,10 +114,16 @@ end
 
 OFT_ImageOriginalOrg=HDM_OFT_ImageExportImport.ImportImage(OFT_In_CameraMeasurement, OFT_In_PreLinearisationCurve);
 
+[OFT_linUnprocessedInputImage_PatchLocations, OFT_linUnprocessedInputImage_PatchColours] = CCFind(OFT_ImageOriginalOrg);
+
+if usejava('Desktop')
+    visualizecc(OFT_ImageOriginalOrg, OFT_linUnprocessedInputImage_PatchLocations);
+end
+
 if(isa(OFT_ImageOriginalOrg,'uint8'))
     OFT_ImageOriginalOrg=double(OFT_ImageOriginalOrg).*(1/(2^8-1));    
 elseif(isa(OFT_ImageOriginalOrg,'uint16'))
-   OFT_ImageOriginalOrg=double(OFT_ImageOriginalOrg).*(1/(2^8-1));    
+   OFT_ImageOriginalOrg=double(OFT_ImageOriginalOrg).*(1/(2^16-1));    
 end
 
 %OFT_ImageOriginalOrg=imresize(OFT_ImageOriginalOrg,0.5);
@@ -267,11 +273,25 @@ else
 
         l_ratioSpec2CAM = OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromSpec ./ OFT_PatchSetCameraTristimuliGreenNormalizedRatioFromCAM;
 
+        l_cnamesWithMeanAndSigma = l_cnames;
+        l_cnamesWithMeanAndSigma{size(l_cnamesWithMeanAndSigma, 2) + 1} = 'Mean';
+        l_cnamesWithMeanAndSigma{size(l_cnamesWithMeanAndSigma, 2) + 1} = 'Sigma';
+        
+        l_ratioSpec2CAM2View = l_ratioSpec2CAM';
+        
+        l_ratioSpec2CAM2View = ...
+            [l_ratioSpec2CAM2View; ...
+            mean(l_ratioSpec2CAM(1, :)), mean(l_ratioSpec2CAM(2, :)), mean(l_ratioSpec2CAM(3, :))];
+
+        l_ratioSpec2CAM2View = ...
+            [l_ratioSpec2CAM2View; ...
+            std(l_ratioSpec2CAM(1, :)), std(l_ratioSpec2CAM(2, :)), std(l_ratioSpec2CAM(3, :))];
+        
         l_f = figure('Name','spectral to CAM data ratio');
-        l_t = uitable(l_f ,'Data', l_ratioSpec2CAM',...
+        l_t = uitable(l_f ,'Data', l_ratioSpec2CAM2View,...
                     'ColumnName',l_rnames, ... 
                     'Position',[0 0 100 100],...
-                    'RowName',l_cnames);
+                    'RowName',l_cnamesWithMeanAndSigma);
         l_t.Position(3) = l_t.Extent(3);
         l_t.Position(4) = l_t.Extent(4);
     
@@ -303,6 +323,12 @@ OFT_TransformedImage2ViewBConv = OFT_TransformedImage2ViewbScaled;
 OFT_TransformedImage2ViewBConv(:,:,1) = OFT_B(1,1)*OFT_TransformedImage2ViewbScaled(:,:,1) + OFT_B(1,2)*OFT_TransformedImage2ViewbScaled(:,:,2) + OFT_B(1,3)*OFT_TransformedImage2ViewbScaled(:,:,3);
 OFT_TransformedImage2ViewBConv(:,:,2) = OFT_B(2,1)*OFT_TransformedImage2ViewbScaled(:,:,1) + OFT_B(2,2)*OFT_TransformedImage2ViewbScaled(:,:,2) + OFT_B(2,3)*OFT_TransformedImage2ViewbScaled(:,:,3);
 OFT_TransformedImage2ViewBConv(:,:,3) = OFT_B(3,1)*OFT_TransformedImage2ViewbScaled(:,:,1) + OFT_B(3,2)*OFT_TransformedImage2ViewbScaled(:,:,2) + OFT_B(3,3)*OFT_TransformedImage2ViewbScaled(:,:,3);
+
+figure('Name','b Scaled and  B Converted Image')
+if usejava('Desktop')
+	subplot(1,2,1),imshow(OFT_TransformedImage2ViewbScaled);
+	subplot(1,2,2),imshow(OFT_TransformedImage2ViewBConv);
+end
 
 %% scale gray to 0.18
 
