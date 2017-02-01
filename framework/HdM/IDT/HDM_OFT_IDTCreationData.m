@@ -23,6 +23,8 @@ classdef HDM_OFT_IDTCreationData
         SpectralResponse_In_LightCalibrationSpectrum;
         SpectralResponse_In_LightCalibrationImage;
         
+        SpectralResponse_In_SpectralResponseFile;
+        
         SpectralResponse_Out_SpectralResponseFile;
         
         IDTCreationConstraints_In_WhitePoint;

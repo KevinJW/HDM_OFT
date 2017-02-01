@@ -1,4 +1,4 @@
-function OFT_Out_Env=HDM_OFT_InitEnvironment(OFT_In_ProcessSubDir,OFT_In_Test)
+function OFT_Out_Env=HDM_OFT_InitEnvironment(OFT_In_ProcessSubDir, OFT_In_Test)
 
 global globalOFT_Env;
 
@@ -54,7 +54,9 @@ commandwindow;
 format shortEng
 
 else
+    
     OFT_Out_Env=globalOFT_Env;    
+    
 end
 
 end

@@ -4,7 +4,7 @@ function HDM_OFT_IDT_CreateBySpectralResponse_In_ZIPorXML(OFT_In_ClientData, OFT
 
     %% init
 
-    OFT_Env=HDM_OFT_InitEnvironment(OFT_In_TaskID);
+    OFT_Env = HDM_OFT_InitEnvironment(OFT_In_TaskID);
 
     [OFT_AppProcessorPath,OFT_ProcessorName,OFT_ProcessorExt] = fileparts(mfilename('fullpath'));
 
@@ -41,14 +41,22 @@ function HDM_OFT_IDT_CreateBySpectralResponse_In_ZIPorXML(OFT_In_ClientData, OFT
     OFT_ProgressLogger.LogUserMessage('estimate camera spectral response');
 
 
+    if not(isempty(IDTTaskData.SpectralResponse_In_SpectralResponseFile))
+        
+        IDTTaskData.SpectralResponse_Out_SpectralResponseFile = IDTTaskData.SpectralResponse_In_SpectralResponseFile;
+        
     % Decide use case: Spectral or color checker based method
-    if isempty(IDTTaskData.SpectralResponse_In_LineCalibrationSpectrum) && isempty(IDTTaskData.SpectralResponse_In_LineCalibrationImage) && isempty(IDTTaskData.SpectralResponse_In_LightCalibrationSpectrum)
-        IDTTaskData.SpectralResponse_Out_SpectralResponseFile=IDTTaskData.SpectralResponse_In_LightCalibrationImage;
+    elseif isempty(IDTTaskData.SpectralResponse_In_LineCalibrationSpectrum) ...
+            && isempty(IDTTaskData.SpectralResponse_In_LineCalibrationImage) ...
+            && isempty(IDTTaskData.SpectralResponse_In_LightCalibrationSpectrum)
+        
+        IDTTaskData.SpectralResponse_Out_SpectralResponseFile = IDTTaskData.SpectralResponse_In_LightCalibrationImage;
+        
     else
 
         %% get spectral response
 
-        OFT_CameraResponse=HDM_OFT_CameraSpectralResponse(IDTTaskData);
+        OFT_CameraResponse = HDM_OFT_CameraSpectralResponse(IDTTaskData);
 
         OFT_CameraReponseFile=strcat('/', OFT_In_TaskID, '_cameraResponse.csv');    
         IDTTaskData.SpectralResponse_Out_SpectralResponseFile=strcat(OFT_Env.OFT_ProcessPath,'/',OFT_CameraReponseFile);
@@ -56,6 +64,7 @@ function HDM_OFT_IDT_CreateBySpectralResponse_In_ZIPorXML(OFT_In_ClientData, OFT
         copyfile(IDTTaskData.SpectralResponse_Out_SpectralResponseFile, OFT_In_ServerOutDir);   
 
         disp(strcat('camera spectral response file: ',IDTTaskData.SpectralResponse_Out_SpectralResponseFile));
+        
     end
 
     %% generate profiles

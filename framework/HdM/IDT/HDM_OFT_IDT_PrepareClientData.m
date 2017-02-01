@@ -73,10 +73,12 @@ OFT_LightSpecPrefix='';
 OFT_LineImgPrefix='';
 OFT_LightImgPrefix='';
 
-IDTTaskData.SpectralResponse_In_LineCalibrationSpectrum=GetXMLNodeValOrExmptyString(thisListitem, 'LineCalibrationSpectrum', strcat(OFT_ClientDataDir, OFT_LineSpecPrefix));
-IDTTaskData.SpectralResponse_In_LineCalibrationImage=GetXMLNodeValOrExmptyString(thisListitem, 'LineCalibrationImage', strcat(OFT_ClientDataDir, OFT_LineImgPrefix));
-IDTTaskData.SpectralResponse_In_LightCalibrationSpectrum=GetXMLNodeValOrExmptyString(thisListitem,'LightCalibrationSpectrum', strcat(OFT_ClientDataDir, OFT_LightSpecPrefix));
-IDTTaskData.SpectralResponse_In_LightCalibrationImage=GetXMLNodeValOrExmptyString(thisListitem,'LightCalibrationImage', strcat(OFT_ClientDataDir, OFT_LightImgPrefix));
+IDTTaskData.SpectralResponse_In_LineCalibrationSpectrum = GetXMLNodeValOrEmptyString(thisListitem, 'LineCalibrationSpectrum', strcat(OFT_ClientDataDir, OFT_LineSpecPrefix));
+IDTTaskData.SpectralResponse_In_LineCalibrationImage = GetXMLNodeValOrEmptyString(thisListitem, 'LineCalibrationImage', strcat(OFT_ClientDataDir, OFT_LineImgPrefix));
+IDTTaskData.SpectralResponse_In_LightCalibrationSpectrum = GetXMLNodeValOrEmptyString(thisListitem,'LightCalibrationSpectrum', strcat(OFT_ClientDataDir, OFT_LightSpecPrefix));
+IDTTaskData.SpectralResponse_In_LightCalibrationImage = GetXMLNodeValOrEmptyString(thisListitem,'LightCalibrationImage', strcat(OFT_ClientDataDir, OFT_LightImgPrefix));
+
+IDTTaskData.SpectralResponse_In_SpectralResponseFile = GetXMLNodeValOrEmptyString(thisListitem,'SpectrumFile', OFT_ClientDataDir);
 
 OFT_ClientParamsDOM_Log = OFT_ClientParamsDOM.getElementsByTagName('IDTCreationConstraints');
 OFT_ClientParamsDOM_In = OFT_ClientParamsDOM_Log.item(0).getElementsByTagName('In');
@@ -132,11 +134,14 @@ end
 function retVal=GetXMLNodeVal(thisListitem,nodeName)
 
 try
-thisList = thisListitem.getElementsByTagName(nodeName);
-retVal=char(thisList.item(0).getFirstChild.getData);
+    
+    thisList = thisListitem.getElementsByTagName(nodeName);
+    retVal=char(thisList.item(0).getFirstChild.getData);
+
 catch
     %%!!! error('Unable to parse XML Node %s.',nodeName);  
     retVal = '';
+    
 end
 
 end
@@ -144,17 +149,22 @@ end
 
 %//!!! Hack around error when delivery color checker based XML with empty
 %nodes
-function retVal=GetXMLNodeValOrExmptyString(thisListitem, nodeName, prefix)
+function retVal=GetXMLNodeValOrEmptyString(thisListitem, nodeName, prefix)
 
 try
-thisList = thisListitem.getElementsByTagName(nodeName);
-if isempty(char(thisList.item(0).getFirstChild.getData))
-    retVal='';
-else
-    retVal=strcat(prefix, char(thisList.item(0).getFirstChild.getData));
-end
+    
+    thisList = thisListitem.getElementsByTagName(nodeName);
+    
+    if isempty(char(thisList.item(0).getFirstChild.getData))
+        retVal = '';
+    else
+        retVal = strcat(prefix, char(thisList.item(0).getFirstChild.getData));
+    end
+
 catch
+    
     retVal='';
+    
 end
 
 end
