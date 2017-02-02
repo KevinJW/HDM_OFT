@@ -50,14 +50,14 @@ peak_location = l_peaklocs;
 
 %% average to close peaks
 
-% [peak_location, peak_value] = AverageToClosePeaks(peak_location, peak_value, 2);
+% [peak_location, peak_value] = HDM_OFT_AverageToClosePeaks(peak_location, peak_value, 2);
 
 l_break = 0;
 
 while l_break == 0
     
     [peak_location, peak_value] = ...
-        AverageToClosePeaks(peak_location, peak_value, 6);
+        HDM_OFT_AverageToClosePeaks(peak_location, peak_value, 6);
 
     l_ar = unique(uint16(peak_location));
        
@@ -315,10 +315,16 @@ OFT_SpectrumImage_peak_location = l_peaklocs;
 
 l_break = 0;
 
+l_max  = l_peaklocs(1, size(l_peaklocs, 2));
+l_min = l_peaklocs(1, 1);
+l_delta = l_max - l_min;
+
+l_averageWidth = l_delta / (2.0 * size(l_peaklocs, 2)); % unit pixel
+
 while l_break == 0
     
     [OFT_SpectrumImage_peak_location, OFT_SpectrumImage_peak_value] = ...
-        AverageToClosePeaks(OFT_SpectrumImage_peak_location, OFT_SpectrumImage_peak_value, 30);
+        HDM_OFT_AverageToClosePeaks(OFT_SpectrumImage_peak_location, OFT_SpectrumImage_peak_value, l_averageWidth);
 
     l_ar = unique(uint16(OFT_SpectrumImage_peak_location));
        
@@ -354,7 +360,7 @@ l_break = 0;
 while l_break == 0
     
     [OFT_SpectrumImage_peak_locationFlipped, OFT_SpectrumImage_peak_valueFlipped] = ...
-        AverageToClosePeaks(OFT_SpectrumImage_peak_locationFlipped, OFT_SpectrumImage_peak_valueFlipped, 30);
+        HDM_OFT_AverageToClosePeaks(OFT_SpectrumImage_peak_locationFlipped, OFT_SpectrumImage_peak_valueFlipped, l_averageWidth);
 
     l_ar = unique(uint16(OFT_SpectrumImage_peak_locationFlipped));
        
@@ -381,7 +387,7 @@ l_break = 0;
 while l_break == 0
     
     [OFT_SpectrumImage_peak_location, OFT_SpectrumImage_peak_value] = ...
-        AverageToClosePeaks(OFT_SpectrumImage_peak_location, OFT_SpectrumImage_peak_value, 30);
+        HDM_OFT_AverageToClosePeaks(OFT_SpectrumImage_peak_location, OFT_SpectrumImage_peak_value, l_averageWidth);
 
     l_ar = unique(uint16(OFT_SpectrumImage_peak_location));
        
@@ -496,11 +502,11 @@ v = v1;
 l_indexOfLastUsedRedLine = size(v, 2);
 OFT_SpectrumImagePixelColumnIndex=interp1(x(1:l_indexOfLastUsedRedLine), v(1:l_indexOfLastUsedRedLine), 1 : 1 : size(OFT_SpectrumImageGray, 2),'linear','extrap');%//!!!'linear',
 
-l_WaveLengthOfHorizontalPixelCoordinatePolynomial = polyfit(x(1:l_indexOfLastUsedRedLine),v(1:l_indexOfLastUsedRedLine), 1);
+l_WaveLengthOfHorizontalPixelCoordinatePolynomial = polyfit(x(1:l_indexOfLastUsedRedLine),v(1:l_indexOfLastUsedRedLine), 2);
 
 l_WaveLengthOfHorizontalPixelCoordinate = polyval(l_WaveLengthOfHorizontalPixelCoordinatePolynomial, 1 : size(OFT_SpectrumImageGray, 2));
 
-OFT_SpectrumImagePixelColumnIndex = l_WaveLengthOfHorizontalPixelCoordinate;
+% OFT_SpectrumImagePixelColumnIndex = l_WaveLengthOfHorizontalPixelCoordinate;
 
 %%found lines in image
 
@@ -550,76 +556,6 @@ out=OFT_SpectrumImagePixelColumnIndex;
 HDM_OFT_Utils.OFT_DispTitle('line calibration succesfully finished');
 
 end
-
-function [o_Peak_location, o_Peak_value] = AverageToClosePeaks(i_Peak_location, i_Peak_value, i_width)
-
-l_PeakMatrix = [i_Peak_location; i_Peak_value];
-[l_Y,l_I] = sort(l_PeakMatrix(1, :));
-l_B = l_PeakMatrix(:, l_I); 
-
-l_ReferencePeaksToCloseWaveLengthsFiltered = [];
-l_ReferencePeaksToCloseWaveLengthsValuesFiltered = [];
-
-l_peakIndex = 1;
-
-while l_peakIndex <= (size(l_B, 2) - 1)
-  
-    if (abs(l_B(1, l_peakIndex + 1) - l_B(1, l_peakIndex)) > i_width)
-    
-        l_ReferencePeaksToCloseWaveLengthsFiltered = [l_ReferencePeaksToCloseWaveLengthsFiltered, l_B(1, l_peakIndex)];
-        l_ReferencePeaksToCloseWaveLengthsValuesFiltered = [l_ReferencePeaksToCloseWaveLengthsValuesFiltered, l_B(2, l_peakIndex)];
-        
-        l_peakIndex = l_peakIndex + 1;
-        
-    elseif(abs(l_B(2, l_peakIndex) - l_B(2, l_peakIndex + 1)) > 0.5)
-        
-        l_ReferencePeaksToCloseWaveLengthsFiltered = [l_ReferencePeaksToCloseWaveLengthsFiltered, l_B(1, l_peakIndex)];
-        l_ReferencePeaksToCloseWaveLengthsValuesFiltered = [l_ReferencePeaksToCloseWaveLengthsValuesFiltered, l_B(2, l_peakIndex)];
-        
-        l_peakIndex = l_peakIndex + 1;
-        
-    else    
-        
-        l_ReferencePeaksToCloseWaveLengthsFiltered = [l_ReferencePeaksToCloseWaveLengthsFiltered, (l_B(1, l_peakIndex) + l_B(1, l_peakIndex + 1)) / 2.0];
-        l_ReferencePeaksToCloseWaveLengthsValuesFiltered = [l_ReferencePeaksToCloseWaveLengthsValuesFiltered, (l_B(2, l_peakIndex) + l_B(2, l_peakIndex + 1)) / 2.0];
-        
-        l_peakIndex = l_peakIndex + 2;
-        
-    end
-    
-end
-
-if (abs(l_B(1, size(l_B, 2)) - l_B(1, size(l_B, 2) - 1)) > i_width)
-    
-    l_ReferencePeaksToCloseWaveLengthsFiltered = [l_ReferencePeaksToCloseWaveLengthsFiltered, l_B(1, size(l_B, 2))];
-    l_ReferencePeaksToCloseWaveLengthsValuesFiltered = [l_ReferencePeaksToCloseWaveLengthsValuesFiltered, l_B(2, size(l_B, 2))];
-    
-elseif(abs(l_B(2, size(l_B, 2)) - l_B(2, size(l_B, 2) - 1)) > 0.5)
-    
-    l_ReferencePeaksToCloseWaveLengthsFiltered = [l_ReferencePeaksToCloseWaveLengthsFiltered, l_B(1, size(l_B, 2))];
-    l_ReferencePeaksToCloseWaveLengthsValuesFiltered = [l_ReferencePeaksToCloseWaveLengthsValuesFiltered, l_B(2, size(l_B, 2))];
-
-end
-
-l_PeakMatrixToClosePeaksAveraged = [l_ReferencePeaksToCloseWaveLengthsValuesFiltered; l_ReferencePeaksToCloseWaveLengthsFiltered];
-[l_Yout,l_Iout] = sort(l_PeakMatrixToClosePeaksAveraged(1, :), 'descend');
-l_Bout = l_PeakMatrixToClosePeaksAveraged(:,l_Iout); 
-
-o_Peak_value = l_Bout(1, :);
-o_Peak_location = l_Bout(2, :);
-
-[l_peaklocs, l_sorter] = sort(o_Peak_location);
-l_amps = zeros(size(o_Peak_value));
-l_npeaks = length(l_peaklocs);
-for cur = 1:l_npeaks,
-    l_amps(:,cur) = o_Peak_value(:, l_sorter(cur));
-end;
-
-o_Peak_value = l_amps;
-o_Peak_location = l_peaklocs;
-
-end
-
 
 %//!!!
 %MEDFILT1       One-dimensional median filter
