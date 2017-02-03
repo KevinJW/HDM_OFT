@@ -1,9 +1,18 @@
 classdef HDM_OFT_CIEStandard
     methods(Static)
 
-        function [OFT_Out_StandardObserverCurves] = ...
+        function [o_StandardObserverCurves] = ...
                 GetStandardObserverCurves(OFT_In_StandardObserverType)
         
+            
+        if size(OFT_In_StandardObserverType, 1) == 4
+    
+            o_StandardObserverCurves = OFT_In_StandardObserverType;
+            
+            return;
+
+        end    
+            
         OFT_Env=HDM_OFT_InitEnvironment();    
         
         if(exist('OFT_In_StandardObserverType','var')==0)   
@@ -32,7 +41,7 @@ classdef HDM_OFT_CIEStandard
             OFT_StandardObserver_y=OFT_CIE31_SpectralCurve_y';
             OFT_StandardObserver_z=OFT_CIE31_SpectralCurve_z';
             
-            OFT_Out_StandardObserverCurves=[OFT_WaveLengthRange;...
+            o_StandardObserverCurves=[OFT_WaveLengthRange;...
                                             OFT_StandardObserver_x;OFT_StandardObserver_y;OFT_StandardObserver_z];
 
         otherwise

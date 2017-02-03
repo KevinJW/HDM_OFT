@@ -1,17 +1,31 @@
 classdef HDM_OFT_PatchSet
     methods(Static)
 
-        function [OFT_PatchSet_SpectralCurve]=GetPatchSpectra(OFT_PatchSetType)
+        function [o_PatchSet_SpectralCurve]=GetPatchSpectra(i_PatchSet)
         
-            OFT_Env=HDM_OFT_InitEnvironment();    
+            if size(i_PatchSet, 1) > 1
+    
+                o_PatchSet_SpectralCurve = i_PatchSet;
+                
+                return;
+                
+            end           
             
-            if(exist('OFT_PatchSetType','var')==0 || strcmp(OFT_PatchSetType,''))
-                OFT_MeasuredPatchFileName=strcat(OFT_Env.OFT_RootDataDir,'/chartMeasurementReference/GM_CCh_Spectra_02.csv');%PatchesMod.xlsx or GM_CCh_Spectra_02.csv
-            elseif(strfind(lower(OFT_PatchSetType), lower(HDM_OFT_PatchSet.GretagMacbethColorChecker())))
-                OFT_MeasuredPatchFileName=strcat(OFT_Env.OFT_RootDataDir,'/chartMeasurementReference/PatchesMod.xlsx');
+            l_Env = HDM_OFT_InitEnvironment();    
+            
+            if(exist('i_PatchSet','var') == 0 || strcmp(i_PatchSet,''))
+                
+                OFT_MeasuredPatchFileName=strcat(l_Env.OFT_RootDataDir,'/chartMeasurementReference/GM_CCh_Spectra_02.csv');%PatchesMod.xlsx or GM_CCh_Spectra_02.csv
+            
+            elseif(strfind(lower(i_PatchSet), lower(HDM_OFT_PatchSet.GretagMacbethColorChecker())))
+                
+                OFT_MeasuredPatchFileName=strcat(l_Env.OFT_RootDataDir,'/chartMeasurementReference/PatchesMod.xlsx');
+                
             else
-                OFT_MeasuredPatchFileName=OFT_PatchSetType;
-            end
+                
+                OFT_MeasuredPatchFileName=i_PatchSet;
+                
+            end         
             
             if(strfind(lower(OFT_MeasuredPatchFileName), '.asc'))
 
@@ -36,7 +50,7 @@ classdef HDM_OFT_PatchSet
                 
                 end
                 
-                OFT_PatchSet_SpectralCurve = l_PatchReflectance;
+                o_PatchSet_SpectralCurve = l_PatchReflectance;
                 
                 return;
                 
@@ -55,16 +69,16 @@ classdef HDM_OFT_PatchSet
             end
             
             oft_newSampleRange=360:1:830;
-            OFT_PatchSet_SpectralCurve=zeros(size(OFT_BabelColor_GM_CCh_SpectralCurve,1),size(oft_newSampleRange,2));
+            o_PatchSet_SpectralCurve=zeros(size(OFT_BabelColor_GM_CCh_SpectralCurve,1),size(oft_newSampleRange,2));
             
             for cur=2:size(OFT_BabelColor_GM_CCh_SpectralCurve,1)
                 
                 curInterpol=interp1(OFT_BabelColor_GM_CCh_SpectralCurve(1,:),OFT_BabelColor_GM_CCh_SpectralCurve(cur,:),360:1:830,'pchip',0);
-                OFT_PatchSet_SpectralCurve(cur,:)=curInterpol;
+                o_PatchSet_SpectralCurve(cur,:)=curInterpol;
                 
             end
             
-            OFT_PatchSet_SpectralCurve(1,:)=oft_newSampleRange;
+            o_PatchSet_SpectralCurve(1,:)=oft_newSampleRange;
         
         end
  
