@@ -3,3 +3,5 @@ testData/testproduktion
 workingDir/
 script/_scriptconf.bash
 testData/IndustryCameraMeasurements/20141208/ClientDataSample/out/0CC9E082-69AF-44ED-A057-1C6B09E4E404/0CC9E082-69AF-44ED-A057-1C6B09E4E404.status.xml
+
+*.m~
