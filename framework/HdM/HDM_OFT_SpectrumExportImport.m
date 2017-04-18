@@ -34,7 +34,9 @@ classdef HDM_OFT_SpectrumExportImport
                     if(findstr(l_str,'nm'))
                         
                         l_w = [l_w, str2num(strrep(l_str, 'nm', ''))];
-                        l_i = [l_i, str2double(l_c2(cur))];
+                        
+                        l_cConv = strrep(l_c2(cur), ',', '.');
+                        l_i = [l_i, str2double(l_cConv)];
                         
                     end
                     
@@ -64,17 +66,36 @@ classdef HDM_OFT_SpectrumExportImport
                 try
 
                     l_table = HDM_OFT_SpectrumExportImport.read_mixed_csv(i_spectrumFile, ';');
-
-                    l_table(1, :) = cellfun(@(s) {strrep(s, 'nm', '')},l_table(1, :));
-                    l_table(1, :) = cellfun(@(s) {str2num(s)},l_table(1, :));
-                    l_table(2, :) = cellfun(@(s) {str2double(s)},l_table(2, :));
-
-                    o_spectrum = cell2mat([l_table(1, 2 : size(l_table, 2)); l_table(2, 2 : size(l_table, 2))]);
+                    l_t1 = cellfun(@(s) {strrep(s, 'nm', '')},l_table(:, :));
+                    l_t2 = cellfun(@(s) {strrep(s, ',', '.')},l_t1(:, :));
+                    l_mt = str2double(l_t2);
+                    
+                    [l_posLr, l_posLc] = find(l_mt <= 400);
+                    [l_posUr, l_posUc] = find(l_mt >= 700);
+                    
+                    if l_posLc(1) == 1 && l_posUc(1) == 1
+                        
+                        l_mt = l_mt';
+                        
+                    end
+                    
+                    l_table = l_mt;                  
+                    
+                    if isnan(l_table(1, 2))
+                            
+                        l_table = l_table(2 : end, :);                   
+                    
+                    elseif isnan(l_table(2, 1))
+                        
+                        l_table = l_table(:, 2 : end);
+                    
+                    end
+                    
+                    o_spectrum = l_table(1 : 2, :);
 
                     if(isnan(o_spectrum(2,1)))%%give third line a chance
                         
-                        l_table(3, :) = cellfun(@(s) {str2double(s)},l_table(3, :));
-                        o_spectrum = cell2mat([l_table(1, 2 : size(l_table, 2)); l_table(3, 2 : size(l_table, 2))]);
+                        o_spectrum = l_table([1 3], :);
                         
                     end
                     

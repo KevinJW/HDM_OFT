@@ -1,6 +1,7 @@
 function o_IDTProfileFileName = HDM_OFT_WriteIDTProfileAndStatEntry...
     (i_MeasuredCameraResponseFileName, i_resnormBEstimation, i_IDT_B, i_IDT_b,...
-    i_NeutralsCompensation, i_IlluminantSpectrum, i_ErrorMinimizationDomain)
+    i_NeutralsCompensation, i_IlluminantSpectrum, i_ErrorMinimizationDomain, ...
+    i_meanDeltaE2000, i_stdDevDeltaE2000)
 
     l_Env = HDM_OFT_InitEnvironment();
 
@@ -26,7 +27,7 @@ function o_IDTProfileFileName = HDM_OFT_WriteIDTProfileAndStatEntry...
 
     if ~exist(strcat(l_Env.OFT_StatisticsPath,'/IDTStat.csv'),'file')
         foutStat = fopen(strcat(l_Env.OFT_StatisticsPath,'/IDTStat.csv'),'wt');
-        fprintf(foutStat,'idt file\t\t , measurement file\t\t , resnorm , B11 , B12 , B13 , B21 , B22 , B23 , B31 , B32 , B33 , scene adopted white, neutrals compensation, colour domain for error minimization\n');
+        fprintf(foutStat,'idt file\t\t , measurement file\t\t , resnorm , B11 , B12 , B13 , B21 , B22 , B23 , B31 , B32 , B33 , scene adopted white, neutrals compensation, colour domain for error minimization, mean Delta E 2000, std dev Delta E 2000\n');
     else
         foutStat = fopen(strcat(l_Env.OFT_StatisticsPath,'/IDTStat.csv'),'at');
     end
@@ -58,7 +59,7 @@ function o_IDTProfileFileName = HDM_OFT_WriteIDTProfileAndStatEntry...
 
             elseif (strfind(S, '%IDT_ILLUMINANT%'))
 
-               fprintf(fout,'// Illuminant %s\n', i_IlluminantSpectrum);
+               fprintf(fout,'// Illuminant %s\n', IlluminantStr);
 
             elseif(strfind(S, '%const float b['))
 
@@ -82,7 +83,7 @@ function o_IDTProfileFileName = HDM_OFT_WriteIDTProfileAndStatEntry...
 
                fprintf(foutStat,'%f , %f , %f , ',i_IDT_B(3,1),i_IDT_B(3,2),i_IDT_B(3,3));
 
-               fprintf(foutStat,'%s , %s , %s', i_IlluminantSpectrum, i_NeutralsCompensation, i_ErrorMinimizationDomain);
+               fprintf(foutStat,'%s , %s , %s, %f, %f', IlluminantStr, i_NeutralsCompensation, i_ErrorMinimizationDomain, i_meanDeltaE2000, i_stdDevDeltaE2000);
 
            end
 

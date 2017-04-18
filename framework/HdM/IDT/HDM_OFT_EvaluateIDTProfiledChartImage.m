@@ -112,7 +112,17 @@ end
 
 %% read and view linear input data
 
-OFT_ImageOriginalOrg=HDM_OFT_ImageExportImport.ImportImage(OFT_In_CameraMeasurement, OFT_In_PreLinearisationCurve);
+OFT_ImageOriginalOrg = HDM_OFT_ImageExportImport.ImportImage(OFT_In_CameraMeasurement, OFT_In_PreLinearisationCurve);
+%OFT_ImageOriginalOrg = imresize(OFT_ImageOriginalOrg, 0.3);
+
+if(isa(OFT_ImageOriginalOrg,'uint8'))
+    OFT_ImageOriginalOrg=double(OFT_ImageOriginalOrg).*(1/(2^8-1));    
+elseif(isa(OFT_ImageOriginalOrg,'uint16'))
+   OFT_ImageOriginalOrg=double(OFT_ImageOriginalOrg).*(1/(2^16-1));  
+   OFT_ImageOriginalOrg = imresize(OFT_ImageOriginalOrg, 0.4);
+else
+    OFT_ImageOriginalOrg = imresize(OFT_ImageOriginalOrg, 0.2);
+end
 
 [OFT_linUnprocessedInputImage_PatchLocations, OFT_linUnprocessedInputImage_PatchColours] = CCFind(OFT_ImageOriginalOrg);
 
@@ -120,13 +130,6 @@ if usejava('Desktop')
     visualizecc(OFT_ImageOriginalOrg, OFT_linUnprocessedInputImage_PatchLocations);
 end
 
-if(isa(OFT_ImageOriginalOrg,'uint8'))
-    OFT_ImageOriginalOrg=double(OFT_ImageOriginalOrg).*(1/(2^8-1));    
-elseif(isa(OFT_ImageOriginalOrg,'uint16'))
-   OFT_ImageOriginalOrg=double(OFT_ImageOriginalOrg).*(1/(2^16-1));    
-end
-
-%OFT_ImageOriginalOrg=imresize(OFT_ImageOriginalOrg,0.5);
 OFT_cameraImageOfTestChart=double(OFT_ImageOriginalOrg);
 
 %% sRGB Curves:
@@ -361,36 +364,38 @@ else
     
     [OFT_cameraImageOfTestChart_PatchLocations,OFT_cameraImageOfTestChart_PatchColours] = CCFind(double(OFT_TransformedImage2ViewBConv));
     
-    %some bug to investigate: sometimes CCFind inverts the patch order
-    if(OFT_cameraImageOfTestChart_PatchLocations(1,1) < OFT_cameraImageOfTestChart_PatchLocations(24,1))
-        
-        l_GrayAxisDataInACES = OFT_cameraImageOfTestChart_PatchColours(:, 19:24);
-        
-    else
-        
-        l_GrayAxisDataInACES = fliplr(OFT_cameraImageOfTestChart_PatchColours(:, 1:6));
-        
-    end
-    
-    yR = polyfit(6:-1:1, l_GrayAxisDataInACES(1, :), 1);
-    yG = polyfit(6:-1:1, l_GrayAxisDataInACES(2, :), 1);
-    yB = polyfit(6:-1:1, l_GrayAxisDataInACES(3, :), 1);
-    
-    figure('Name','gray axis patches values in ACES domain')
-    if usejava('Desktop')
-        plot(6:-1:1, l_GrayAxisDataInACES(1, :), 'r', ...
-            6:-1:1, l_GrayAxisDataInACES(2, :), 'g', ...
-            6:-1:1, l_GrayAxisDataInACES(3, :), 'b', ...
-            6:-1:1, l_GrayAxisDataInACES(1, :), 'r+', ...
-            6:-1:1, l_GrayAxisDataInACES(2, :), 'gx', ...
-            6:-1:1, l_GrayAxisDataInACES(3, :), 'bo', ...
-            6:-1:1, polyval(yR, 6:-1:1),'r--', ...
-            6:-1:1, polyval(yG, 6:-1:1),'g--', ...
-            6:-1:1, polyval(yB, 6:-1:1),'b--')
-        xlabel('sample')
-        ylabel('code value')
-        legend({'r','g','b'})
-        title(strcat('gray axis patches values in ACES domain'));
+    if not(isempty(OFT_cameraImageOfTestChart_PatchLocations))
+        %some bug to investigate: sometimes CCFind inverts the patch order
+        if(OFT_cameraImageOfTestChart_PatchLocations(1,1) < OFT_cameraImageOfTestChart_PatchLocations(24,1))
+
+            l_GrayAxisDataInACES = OFT_cameraImageOfTestChart_PatchColours(:, 19:24);
+
+        else
+
+            l_GrayAxisDataInACES = fliplr(OFT_cameraImageOfTestChart_PatchColours(:, 1:6));
+
+        end
+
+        yR = polyfit(6:-1:1, l_GrayAxisDataInACES(1, :), 1);
+        yG = polyfit(6:-1:1, l_GrayAxisDataInACES(2, :), 1);
+        yB = polyfit(6:-1:1, l_GrayAxisDataInACES(3, :), 1);
+
+        figure('Name','gray axis patches values in ACES domain')
+        if usejava('Desktop')
+            plot(6:-1:1, l_GrayAxisDataInACES(1, :), 'r', ...
+                6:-1:1, l_GrayAxisDataInACES(2, :), 'g', ...
+                6:-1:1, l_GrayAxisDataInACES(3, :), 'b', ...
+                6:-1:1, l_GrayAxisDataInACES(1, :), 'r+', ...
+                6:-1:1, l_GrayAxisDataInACES(2, :), 'gx', ...
+                6:-1:1, l_GrayAxisDataInACES(3, :), 'bo', ...
+                6:-1:1, polyval(yR, 6:-1:1),'r--', ...
+                6:-1:1, polyval(yG, 6:-1:1),'g--', ...
+                6:-1:1, polyval(yB, 6:-1:1),'b--')
+            xlabel('sample')
+            ylabel('code value')
+            legend({'r','g','b'})
+            title(strcat('gray axis patches values in ACES domain'));
+        end
     end
     
 end
