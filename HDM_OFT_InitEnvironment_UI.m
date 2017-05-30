@@ -87,6 +87,9 @@ function o_Env_UI=HDM_OFT_InitEnvironment_UI...
     l_Env_UI.OFT_PlotColourDir = i_OutPlotColourDir;
     l_Env_UI.OFT_PlotBWDir = i_OutPlotBWDir;
     
+    mkdir(l_Env_UI.OFT_PlotColourDir);
+    mkdir(l_Env_UI.OFT_PlotBWDir);
+    
     l_Env_UI.OFT_SavePlot = i_SavePlot;
     l_Env_UI.OFT_ExportPlotToClipBoard = i_ExportPlot;
     
