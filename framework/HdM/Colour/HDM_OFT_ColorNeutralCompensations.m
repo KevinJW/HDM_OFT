@@ -16,8 +16,8 @@ classdef HDM_OFT_ColorNeutralCompensations
         function out=NoneType()
             out='None';
         end
-
-        function out = OFT_CompensateTristimuliForDifferentWhite(OFT_NeutralsCompensation, OFT_ColorCheckerTristimuli, OFT_Ww, OFT_w)
+        
+        function o_M = OFT_GetNeutralCompensationMatrix(OFT_NeutralsCompensation, OFT_Ww, OFT_w)
             
         switch OFT_NeutralsCompensation
 
@@ -32,11 +32,7 @@ classdef HDM_OFT_ColorNeutralCompensations
                 -0.7502 1.7135 0.0367;
                 0.0389 -0.0685 1.0296];
 
-            ChromaticAdaptationMatrix_Bradford=HDM_OFT_ColorNeutralCompensations.OFT_CreateChromaticAdaptationMatrix(OFT_ChromaticAdaptation_Bradford,OFT_Ww, OFT_w);
-
-            OFT_ColorCheckerTristimuli_ChromaticAdaptedBradford=HDM_OFT_ColorNeutralCompensations.OFT_AdjustTristimuliForDifferentWhite(OFT_ColorCheckerTristimuli,ChromaticAdaptationMatrix_Bradford);
-
-            OFT_ColorCheckerTristimuli_NeutralsCompensated=OFT_ColorCheckerTristimuli_ChromaticAdaptedBradford;
+            o_M = HDM_OFT_ColorNeutralCompensations.OFT_CreateChromaticAdaptationMatrix(OFT_ChromaticAdaptation_Bradford,OFT_Ww, OFT_w);
 
         case HDM_OFT_ColorNeutralCompensations.ChromaticAdaptationCAT02Type()
 
@@ -48,11 +44,7 @@ classdef HDM_OFT_ColorNeutralCompensations
                 -0.7036 1.6975 0.0061;
                 0.0030 -0.0136 0.9834];
 
-            ChromaticAdaptationMatrix_CAT02=HDM_OFTP_ColorNeutralCompensations.OFT_CreateChromaticAdaptationMatrix(OFT_ChromaticAdaptation_CAT02,OFT_Ww, OFT_w);
-
-            OFT_ColorCheckerTristimuli_ChromaticAdaptedCAT02=HDM_OFTP_ColorNeutralCompensations.OFT_AdjustTristimuliForDifferentWhite(OFT_ColorCheckerTristimuli,ChromaticAdaptationMatrix_CAT02);
-
-            OFT_ColorCheckerTristimuli_NeutralsCompensated=OFT_ColorCheckerTristimuli_ChromaticAdaptedCAT02;
+            o_M = HDM_OFTP_ColorNeutralCompensations.OFT_CreateChromaticAdaptationMatrix(OFT_ChromaticAdaptation_CAT02,OFT_Ww, OFT_w);
 
         case HDM_OFT_ColorNeutralCompensations.ReIlluminationType()
 
@@ -65,11 +57,55 @@ classdef HDM_OFT_ColorNeutralCompensations
                 -0.9542 1.8731 0.0811;
                 0.0170 -0.0333  1.0163];
 
-            OFT_ReIlluminationMatrix=HDM_OFTP_ColorNeutralCompensations.OFT_CreateReIlluminationMatrix(OFT_Reillumination,OFT_Ww);
+            o_M = HDM_OFTP_ColorNeutralCompensations.OFT_CreateReIlluminationMatrix(OFT_Reillumination,OFT_Ww);
 
-            OFT_ColorCheckerTristimuli_ReIlluminated=HDM_OFTP_ColorNeutralCompensations.OFT_AdjustTristimuliForDifferentWhite(OFT_ColorCheckerTristimuli,OFT_ReIlluminationMatrix);
+        otherwise
 
-            OFT_ColorCheckerTristimuli_NeutralsCompensated=OFT_ColorCheckerTristimuli_ReIlluminatedd;
+            HDM_OFT_Utils.OFT_DispSubTitle('4.7.4.1 ident');
+
+            o_M = [1 0 0; 0 1 0; 0 0 1];
+
+        end    
+        
+    end
+ 
+    function out = OFT_CompensateTristimuliForDifferentWhite(OFT_NeutralsCompensation, OFT_ColorCheckerTristimuli, OFT_Ww, OFT_w)
+            
+        switch OFT_NeutralsCompensation
+
+        case HDM_OFT_ColorNeutralCompensations.ChromaticAdaptationBradfordType()
+
+            %% 4.7.4.1 via chromatic adaptation
+            %HDM_OFTP_Utils.OFT_DispTitle('4.7.4.1 via chromatic adaptation Bradford');
+
+            ChromaticAdaptationMatrix_Bradford = HDM_OFT_ColorNeutralCompensations.OFT_GetNeutralCompensationMatrix(OFT_NeutralsCompensation, OFT_Ww, OFT_w);
+
+            OFT_ColorCheckerTristimuli_ChromaticAdaptedBradford=HDM_OFT_ColorNeutralCompensations.OFT_AdjustTristimuliForDifferentWhite(OFT_ColorCheckerTristimuli,ChromaticAdaptationMatrix_Bradford);
+
+            OFT_ColorCheckerTristimuli_NeutralsCompensated=OFT_ColorCheckerTristimuli_ChromaticAdaptedBradford;
+
+        case HDM_OFT_ColorNeutralCompensations.ChromaticAdaptationCAT02Type()
+
+            %% 4.7.4.1 via chromatic adaptation
+            HDM_OFT_Utils.OFT_DispSubTitle('4.7.4.1 via chromatic adaptation CAT02');
+
+            ChromaticAdaptationMatrix_CAT02 = HDM_OFT_ColorNeutralCompensations.OFT_GetNeutralCompensationMatrix(OFT_NeutralsCompensation, OFT_Ww, OFT_w);
+
+            OFT_ColorCheckerTristimuli_ChromaticAdaptedCAT02=HDM_OFTP_ColorNeutralCompensations.OFT_AdjustTristimuliForDifferentWhite(OFT_ColorCheckerTristimuli,ChromaticAdaptationMatrix_CAT02);
+
+            OFT_ColorCheckerTristimuli_NeutralsCompensated=OFT_ColorCheckerTristimuli_ChromaticAdaptedCAT02;
+
+        case HDM_OFT_ColorNeutralCompensations.ReIlluminationType()
+
+            %% 4.7.4.2 reillumination
+            HDM_OFTP_Utils.OFT_DispSubTitle('4.7.4.2 via reillumination');
+
+            %todo the matrix below is an example???
+            OFT_ReIlluminationMatrix = OFT_GetNeutralCompensationMatrix(OFT_NeutralsCompensation, OFT_Ww, OFT_w);
+
+            OFT_ColorCheckerTristimuli_ReIlluminated=HDM_OFT_ColorNeutralCompensations.HDM_OFTP_ColorNeutralCompensations.OFT_AdjustTristimuliForDifferentWhite(OFT_ColorCheckerTristimuli,OFT_ReIlluminationMatrix);
+
+            OFT_ColorCheckerTristimuli_NeutralsCompensated=OFT_ColorCheckerTristimuli_ReIlluminated;
 
         otherwise
 

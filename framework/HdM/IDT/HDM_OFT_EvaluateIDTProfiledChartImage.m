@@ -446,29 +446,21 @@ OFT_cameraImageOfTestChart_PatchColours_XYZConverted=OFT_Reference2StandardPrima
 
 %% processed patches XYZ and inverse chromatic adaptation
 
-OFT_CIEStandardObserver_SpectralCurves=HDM_OFT_CIEStandard.GetStandardObserverCurves(OFT_StandardObserver);
-
-OFT_Illuminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetIlluminantSpectrum(OFT_IlluminantSpectrum);
-OFT_Xw=trapz(OFT_CIEStandardObserver_SpectralCurves(2,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:));
-OFT_Yw=trapz(OFT_CIEStandardObserver_SpectralCurves(3,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:));
-OFT_Zw=trapz(OFT_CIEStandardObserver_SpectralCurves(4,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:));
-
-OFT_WwUnscaled=[OFT_Xw,OFT_Yw,OFT_Zw]';
-OFT_Ww=100*(OFT_WwUnscaled./OFT_WwUnscaled(2));
+OFT_ChartImageTristimuli_NeutralsCompensated = OFT_cameraImageOfTestChart_PatchColours_XYZConverted;
 
 % now we use the inverse for getting Illumination White from D60 based ACES
-OFT_ChartImageTristimuli_NeutralsCompensated=HDM_OFT_ColorNeutralCompensations.OFT_CompensateTristimuliForDifferentWhite...
-    (OFT_NeutralsCompensation, OFT_cameraImageOfTestChart_PatchColours_XYZConverted, OFT_w, OFT_Ww);
+%OFT_ChartImageTristimuli_NeutralsCompensated=HDM_OFT_ColorNeutralCompensations.OFT_CompensateTristimuliForDifferentWhite...
+%    (OFT_NeutralsCompensation, OFT_cameraImageOfTestChart_PatchColours_XYZConverted, OFT_w, OFT_Ww);
 
 NumberOfPatches = size(OFT_ChartImageTristimuli_NeutralsCompensated,2);
 OFT_ColorCheckerTristimuli_ColorValueParts = zeros(3,NumberOfPatches);
 
 for patchIndex = 1:(NumberOfPatches) 
     cur = OFT_ChartImageTristimuli_NeutralsCompensated(:,patchIndex);
-    sum = cur(1) + cur(2) + cur(3);
-    OFT_ColorCheckerTristimuli_ColorValueParts(1,patchIndex) = cur(1) / sum;
-    OFT_ColorCheckerTristimuli_ColorValueParts(2,patchIndex) = cur(2) / sum;
-    OFT_ColorCheckerTristimuli_ColorValueParts(3,patchIndex) = cur(3) / sum;
+    l_sum = cur(1) + cur(2) + cur(3);
+    OFT_ColorCheckerTristimuli_ColorValueParts(1,patchIndex) = cur(1) / l_sum;
+    OFT_ColorCheckerTristimuli_ColorValueParts(2,patchIndex) = cur(2) / l_sum;
+    OFT_ColorCheckerTristimuli_ColorValueParts(3,patchIndex) = cur(3) / l_sum;
 end;
 
 OFT_ChartImageTristimuli_NeutralsCompensatedNorm=OFT_ChartImageTristimuli_NeutralsCompensated;
@@ -492,24 +484,34 @@ OFT_Illuminant_Spectrum_1nm_CIE31Range=HDM_OFT_GetIlluminantSpectrum(OFT_Illumin
                     OFT_Illuminant_Spectrum_1nm_CIE31Range,...
                     OFT_PatchSet_SpectralCurve);
                
-OFT_ColorCheckerTristimuliReference_NeutralsCompensated = OFT_ColorCheckerTristimuliReference;
+%OFT_ColorCheckerTristimuliReference_NeutralsCompensated = OFT_ColorCheckerTristimuliReference;
+
+OFT_Xw=trapz(OFT_CIEStandardObserver_SpectralCurves(2,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:));
+OFT_Yw=trapz(OFT_CIEStandardObserver_SpectralCurves(3,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:));
+OFT_Zw=trapz(OFT_CIEStandardObserver_SpectralCurves(4,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:));
+OFT_WwUnscaled=[OFT_Xw,OFT_Yw,OFT_Zw]';
+OFT_Ww=100*(OFT_WwUnscaled./OFT_WwUnscaled(2));
+
+% now we use the inverse for getting Illumination White from D60 based ACES
+OFT_ColorCheckerTristimuliReference_NeutralsCompensated=HDM_OFT_ColorNeutralCompensations.OFT_CompensateTristimuliForDifferentWhite...
+    (OFT_NeutralsCompensation, OFT_ColorCheckerTristimuliReference, OFT_Ww, OFT_w);
 
 NumberOfPatches = size(OFT_ColorCheckerTristimuliReference_NeutralsCompensated,2);
 OFT_ColorCheckerTristimuli_ColorValueParts_Reference = zeros(3,NumberOfPatches);
 
 for patchIndex = 1:(NumberOfPatches) 
     cur = OFT_ColorCheckerTristimuliReference_NeutralsCompensated(:,patchIndex);
-    sum = cur(1) + cur(2) + cur(3);
-    OFT_ColorCheckerTristimuli_ColorValueParts_Reference(1,patchIndex) = cur(1) / sum;
-    OFT_ColorCheckerTristimuli_ColorValueParts_Reference(2,patchIndex) = cur(2) / sum;
-    OFT_ColorCheckerTristimuli_ColorValueParts_Reference(3,patchIndex) = cur(3) / sum;
+    l_sum = cur(1) + cur(2) + cur(3);
+    OFT_ColorCheckerTristimuli_ColorValueParts_Reference(1,patchIndex) = cur(1) / l_sum;
+    OFT_ColorCheckerTristimuli_ColorValueParts_Reference(2,patchIndex) = cur(2) / l_sum;
+    OFT_ColorCheckerTristimuli_ColorValueParts_Reference(3,patchIndex) = cur(3) / l_sum;
 end;
 
 OFT_ColorCheckerTristimuli_NeutralsCompensatedNorm = OFT_ColorCheckerTristimuliReference_NeutralsCompensated;
 
 %% compute Lab for reference and image patches
 
-OFT_ColorCheckerLab4Patches=HDM_OFT_ColorConversions.OFT_CIELab(OFT_ColorCheckerTristimuli_NeutralsCompensatedNorm, OFT_Ww);
+OFT_ColorCheckerLab4Patches=HDM_OFT_ColorConversions.OFT_CIELab(OFT_ColorCheckerTristimuli_NeutralsCompensatedNorm, OFT_w);
 
 % before we go to Lab domain for image XYZ: scale 0.18 gray patch to same Y as reference
 
@@ -522,17 +524,20 @@ if(OFT_cameraImageOfTestChart_PatchLocations(1,1) > OFT_cameraImageOfTestChart_P
 
 end
 
-l_XYZimg4MidGray = OFT_ChartImageTristimuli_NeutralsCompensatedNorm(:, 22);
+l_XYZimg4White = OFT_ChartImageTristimuli_NeutralsCompensatedNorm(:, 22);
 
-l_scale4Ref = l_XYZref4MidGray ./ l_XYZimg4MidGray;
+l_scale4Ref = l_XYZref4MidGray ./ l_XYZimg4White;
 
 OFT_ChartImageTristimuli_NeutralsCompensatedNorm(1, :) = OFT_ChartImageTristimuli_NeutralsCompensatedNorm(1, :).* l_scale4Ref(1,1);
 OFT_ChartImageTristimuli_NeutralsCompensatedNorm(2, :) = OFT_ChartImageTristimuli_NeutralsCompensatedNorm(2, :).* l_scale4Ref(2,1);
 OFT_ChartImageTristimuli_NeutralsCompensatedNorm(3, :) = OFT_ChartImageTristimuli_NeutralsCompensatedNorm(3, :).* l_scale4Ref(3,1);
 
-OFT_ChartImageLab4Patches=HDM_OFT_ColorConversions.OFT_CIELab(OFT_ChartImageTristimuli_NeutralsCompensatedNorm,OFT_ToLabWhite);
+OFT_ChartImageLab4Patches=HDM_OFT_ColorConversions.OFT_CIELab(OFT_ChartImageTristimuli_NeutralsCompensatedNorm, OFT_w);
     
 %% compute delta E 
+
+l_F = OFT_ColorCheckerLab4Patches - OFT_ChartImageLab4Patches;
+l_deltaE4Patches = sqrt(sum(l_F.^2, 1));
 
 l_deltaE2000 = deltaE2000(OFT_ColorCheckerLab4Patches', OFT_ChartImageLab4Patches');
 
@@ -567,6 +572,41 @@ OFT_CIE31_colorValueParts=csvread(strcat(OFT_Env.OFT_ConstraintsPath,'/cccie31.c
 OFT_CIE31_colorValueParts_x=[OFT_CIE31_colorValueParts(:,2)];
 OFT_CIE31_colorValueParts_y=[OFT_CIE31_colorValueParts(:,3)];
 
+if(strfind(OFT_SpectralResponseFile, '.csv'))%if spectral based
+    
+    %% compute saturated rgb xyz corner points by saturation
+
+    l_perfectReflector = [OFT_PatchSet_SpectralCurve(1, :); ones(1, size(OFT_PatchSet_SpectralCurve, 2))];
+    
+    [l_Tristimuli4Corner_UsedIlluminant,l_Chromaticities4Corner_UsedIlluminant]=...
+            HDM_OFT_TristimuliCreator.CreateFromSpectrum(...
+                    OFT_CIEStandardObserver_SpectralCurves,...
+                    OFT_UsedIlluminant_Spectrum_1nm_CIE31Range,...
+                    OFT_CameraSpectralResponse_1nm_CIE31Range);        
+                
+    [l_Tristimuli4Corner_TargetIlluminant,l_Chromaticities4Corner_TargetIlluminant]=...
+        HDM_OFT_TristimuliCreator.CreateFromSpectrum(...
+                OFT_CIEStandardObserver_SpectralCurves,...
+                OFT_Illuminant_Spectrum_1nm_CIE31Range,...
+                OFT_CameraSpectralResponse_1nm_CIE31Range);      
+
+    %% compute saturated rgb xyz corner points by matrix
+    
+    OFT_IDT_b;
+    
+    l_XYZ4R = OFT_Reference2StandardPrimaries * OFT_IDT_B * ([1; 0; 0] .* OFT_IDT_b);%' * l_M;
+    l_xyz4R = l_XYZ4R / sum(l_XYZ4R(:));
+    
+    l_XYZ4G = OFT_Reference2StandardPrimaries * OFT_IDT_B * ([0; 1; 0] .* OFT_IDT_b);%' * l_M;
+    l_xyz4G = l_XYZ4G / sum(l_XYZ4G(:));
+    
+    l_XYZ4B = OFT_Reference2StandardPrimaries * OFT_IDT_B * ([0; 0; 1] .* OFT_IDT_b);%' * l_M;
+    l_xyz4B = l_XYZ4B / sum(l_XYZ4B(:));
+    
+    l_Chromaticities4Corner_MatrixBased = [l_xyz4R, l_xyz4G, l_xyz4B];
+
+end
+
 %% visualize
 
 labelsRef = cellstr( num2str([1:24]') );
@@ -584,7 +624,13 @@ end
 figure
 plot([OFT_CIE31_colorValueParts_x;OFT_CIE31_colorValueParts_x(1)],[OFT_CIE31_colorValueParts_y;OFT_CIE31_colorValueParts_y(1)],'-',...
     OFT_ColorCheckerTristimuli_ColorValueParts(1,:), OFT_ColorCheckerTristimuli_ColorValueParts(2,:),'r+',...
-    OFT_ColorCheckerTristimuli_ColorValueParts_Reference(1,:), OFT_ColorCheckerTristimuli_ColorValueParts_Reference(2,:),'bx')
+    OFT_ColorCheckerTristimuli_ColorValueParts_Reference(1,:), OFT_ColorCheckerTristimuli_ColorValueParts_Reference(2,:),'bx', ...
+    [l_Chromaticities4Corner_UsedIlluminant(1, :)'; l_Chromaticities4Corner_UsedIlluminant(1, 1)], ...
+    [l_Chromaticities4Corner_UsedIlluminant(2, :)'; l_Chromaticities4Corner_UsedIlluminant(2, 1)],'r-', ...
+    [l_Chromaticities4Corner_TargetIlluminant(1, :)'; l_Chromaticities4Corner_TargetIlluminant(1, 1)], ...
+    [l_Chromaticities4Corner_TargetIlluminant(2, :)'; l_Chromaticities4Corner_TargetIlluminant(2, 1)],'g-', ...
+    [l_Chromaticities4Corner_MatrixBased(1, :)'; l_Chromaticities4Corner_MatrixBased(1, 1)], ...
+    [l_Chromaticities4Corner_MatrixBased(2, :)'; l_Chromaticities4Corner_MatrixBased(2, 1)],'b-')
 
 text(OFT_ColorCheckerTristimuli_ColorValueParts_Reference(1,:), ...
     OFT_ColorCheckerTristimuli_ColorValueParts_Reference(2,:), labelsRef, 'VerticalAlignment','top', ...

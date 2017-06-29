@@ -26,10 +26,11 @@ function HDM_OFT_UI_PlotTableAndSave...
 
     l_figure = figure('Name', i_title, 'Position', [l_lastPos(1) + l_shift, l_dy, l_defpos(3), l_defpos(4)]);
     l_t = uitable(l_figure, 'Data', i_data,...
-                'ColumnName',i_cNames);
+                'ColumnName', i_cNames, 'RowName', i_rNames);%, ...
+                %'Position', [0 0 100 100]);
 
     l_t.Position(3) = l_t.Extent(3);
-    l_t.Position(4) = l_t.Extent(4);
+    %l_t.Position(4) = l_t.Extent(4);
     
     l_name = get(l_figure, 'name');
     

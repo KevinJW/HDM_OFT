@@ -62,7 +62,7 @@ classdef HDM_OFT_SpectrumExportImport
             [l_p,l_n,l_ext]=fileparts(i_spectrumFile);
             
             %% Open Film Tools spectral database
-            if(strcmp(l_ext,'.csv'))
+            if(strcmp(l_ext,'.csv') || strcmp(l_ext,'.txt'))
                 try
 
                     l_table = HDM_OFT_SpectrumExportImport.read_mixed_csv(i_spectrumFile, ';');

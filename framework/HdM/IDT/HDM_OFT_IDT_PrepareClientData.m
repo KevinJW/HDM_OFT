@@ -98,11 +98,56 @@ if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_SceneIlluminati
 end
 
 IDTTaskData.IDTCreationConstraints_In_ErrorMinimizationDomain=GetXMLNodeVal(thisListitem,'ErrorMinimizationDomain');
+  
+l_PatchSets = GetXMLNodeValList(thisListitem,'PatchSet');
 
-IDTTaskData.IDTCreationConstraints_In_PatchSet=GetXMLNodeVal(thisListitem,'PatchSet');  
+IDTTaskData.IDTCreationConstraints_In_PatchSet = cell2mat(l_PatchSets(1));
 
-if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_PatchSet), '.csv')) || ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_PatchSet), '.xls')))
+%file path creation for sets
+if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_PatchSet), '.csv')) ...
+        || ...
+        ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_PatchSet), '.txt')) ...
+        || ...
+        ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_PatchSet), '.xls')))
     IDTTaskData.IDTCreationConstraints_In_PatchSet =  strcat(OFT_ClientDataDir, IDTTaskData.IDTCreationConstraints_In_PatchSet);
+end
+
+if size(l_PatchSets, 1) > 1
+
+    IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets = {};
+
+    IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets(1, 1) = l_PatchSets(2);
+
+    %file path creation for sets
+    if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{1}), '.csv')) ...
+            || ...
+            ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{1}), '.txt')) ...
+            || ...
+            ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{1}), '.xls')))
+
+        IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{1} =  ...
+            strcat(OFT_ClientDataDir, IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{1});
+
+    end
+
+    for cur = 3 : size(l_PatchSets, 1)
+
+        IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets(cur - 1, 1) = l_PatchSets(cur);
+        
+        %file path creation for sets
+        if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{cur - 1}), '.csv')) ...
+                || ...
+                ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{cur - 1}), '.txt')) ...
+                || ...
+                ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{cur - 1}), '.xls')))
+            
+            IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{cur - 1} =  ...
+                strcat(OFT_ClientDataDir, IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{cur - 1});
+        
+        end
+
+    end
+
 end
 
 OFT_ClientParamsDOM_Log = OFT_ClientParamsDOM.getElementsByTagName('Evaluation');
@@ -133,16 +178,41 @@ end
 
 function retVal=GetXMLNodeVal(thisListitem,nodeName)
 
-try
-    
-    thisList = thisListitem.getElementsByTagName(nodeName);
-    retVal=char(thisList.item(0).getFirstChild.getData);
+    try
 
-catch
-    %%!!! error('Unable to parse XML Node %s.',nodeName);  
-    retVal = '';
-    
+        thisList = thisListitem.getElementsByTagName(nodeName);
+        retVal=char(thisList.item(0).getFirstChild.getData);
+
+    catch
+        %%!!! error('Unable to parse XML Node %s.',nodeName);  
+        retVal = '';
+
+    end
+
 end
+
+function retVal=GetXMLNodeValList(thisListitem,nodeName)
+
+    try
+
+        thisList = thisListitem.getElementsByTagName(nodeName);
+        retVal = {};
+        retVal{1, 1} = char(thisList.item(0).getFirstChild.getData);
+        l_cur = 1;
+        
+        while not(isempty(thisList.item(l_cur)))
+              
+            retVal{l_cur + 1, 1} = char(thisList.item(l_cur).getFirstChild.getData);
+        
+            l_cur = l_cur + 1;
+        
+        end
+
+    catch
+        %%!!! error('Unable to parse XML Node %s.',nodeName);  
+        retVal = '';
+
+    end
 
 end
 

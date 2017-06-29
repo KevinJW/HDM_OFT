@@ -102,53 +102,96 @@ end
 
 HDM_OFT_Utils.OFT_DispSubTitle('4.7.7 B estimation');
 
-if not(exist('i_IndiceesOfObjectReflectances4CorrectMappedColour', 'var')) || not(isempty(i_IndiceesOfObjectReflectances4CorrectMappedColour))
-
-    if not(exist('i_ObjectReflectancesWeightings', 'var'))
-        i_ObjectReflectancesWeightings = [];
-    end
+if not(exist('i_ObjectReflectancesWeightings', 'var'))
     
+    i_ObjectReflectancesWeightings = [];
+    
+end
+
+% for constrained methods tests, if Color Checker is used
+%i_IndiceesOfObjectReflectances4CorrectMappedColour = 19;
+
+if not(exist('i_IndiceesOfObjectReflectances4CorrectMappedColour', 'var')) || isempty(i_IndiceesOfObjectReflectances4CorrectMappedColour)
+
+    % contains tested ACES based method if i_ErrorMinimizationDomain is Lab
+    %old script colorimetric transform matrix, i.e. left side before colour
     [OFT_IDT_B, OFT_resnormBEstimation] = ...
         HDM_OFT_Estimate3x3TransformationMatrixUnconstrained(i_ErrorMinimizationDomain, ...
-            parOFT_PatchSetTristimuli_NeutralsCompensated, parOFT_PatchSetCameraTristimuli, l_M, referenceWhite, ...
+            parOFT_PatchSetTristimuli_NeutralsCompensated', parOFT_PatchSetCameraTristimuli', l_M, referenceWhite, ...
             i_ObjectReflectancesWeightings);
     
-else
+else % constrained
     
+    %new script colorimetric transform matrix, i.e. right side before colour^T
     [OFT_IDT_B, OFT_resnormBEstimation] = ...
         HDM_OFT_Estimate3x3TransformationMatrixConstrained(i_ErrorMinimizationDomain, ...
-            parOFT_PatchSetTristimuli_NeutralsCompensated, parOFT_PatchSetCameraTristimuli, l_M, ...
-            referenceWhite, i_IndiceesOfObjectReflectances4CorrectMappedColour, i_ObjectReflectancesWeightings);
+            parOFT_PatchSetTristimuli_NeutralsCompensated', parOFT_PatchSetCameraTristimuli', l_M, ...
+            referenceWhite, i_ObjectReflectancesWeightings, i_IndiceesOfObjectReflectances4CorrectMappedColour);
+       
+    %so we must transpose for backward compat.
+    OFT_IDT_B = OFT_IDT_B';
     
 end
 
 %% evaluate
 
-l_transformedCurrentValues = (parOFT_PatchSetCameraTristimuli)' * OFT_IDT_B';
-l_referenceValues = parOFT_PatchSetTristimuli_NeutralsCompensated';   
+l_transformedCurrentValues =  l_M * OFT_IDT_B * parOFT_PatchSetCameraTristimuli;
+l_referenceValues = parOFT_PatchSetTristimuli_NeutralsCompensated;   
+
+l_transformedCurrentValuesChromaticities = l_transformedCurrentValues ./ repmat(sum(l_transformedCurrentValues, 1), 3, 1);
+l_referenceValuesChromaticities = l_referenceValues ./ repmat(sum(l_referenceValues, 1), 3, 1);
+
+[OFT_CIE31_colorValuePartsWaveLength,...
+OFT_CIE31_colorValueParts_x,OFT_CIE31_colorValueParts_y,OFT_CIE31_colorValueParts_z]=...
+    HDM_OFT_CIEStandard.ColorValuePartsForSpectralColoursCurve(HDM_OFT_CIEStandard.StandardObserver1931_2Degrees);  
+
+OFT_ColorCheckerPatchSetReference_xyY=HDM_OFT_PatchSet.GetCIE31_2Degress_D50_ColorChecker_BabelColorReferences();
+
+l_plotArgs = {{[OFT_CIE31_colorValueParts_x; OFT_CIE31_colorValueParts_x(1)], [OFT_CIE31_colorValueParts_y;OFT_CIE31_colorValueParts_y(1)],'-'}; ...
+              {l_referenceValuesChromaticities(1, :), l_referenceValuesChromaticities(2, :),'r+'}; ...  
+              {l_transformedCurrentValuesChromaticities(1, :), l_transformedCurrentValuesChromaticities(2, :), 'bx'}; ...
+              {referenceWhite(1, 1) / sum(referenceWhite(:)), referenceWhite(2, 1) / sum(referenceWhite(:)), 'gx'}};
+          
+l_labels2 = cellstr( num2str([1 : size(l_referenceValuesChromaticities, 2)]') );
+l_dist4Label = 0.003;
+
+l_textArgs = ...
+    {{l_referenceValuesChromaticities(1, :) + l_dist4Label, l_referenceValuesChromaticities(2, :) + l_dist4Label, ...
+    l_labels2, ...
+    'VerticalAlignment','bottom', 'HorizontalAlignment','left'}; ...
+    ...
+    {l_transformedCurrentValuesChromaticities(1, :) - l_dist4Label, l_transformedCurrentValuesChromaticities(2, :) - l_dist4Label, ...
+    l_labels2, ...
+    'VerticalAlignment','top', 'HorizontalAlignment','right'}};
+
+HDM_OFT_UI_PlotAndSave(l_plotArgs, ...
+        'CIE 1931 2 Degree Standard Observer Chromaticities', 'x', 'y', ...
+        {'spectral locus', 'reference', 'transformed', 'white'}, l_textArgs);
 
 l_meanDeltaE2000 = -1;
 l_stdDevDeltaE2000 = -1;
+ 
+l_refLab = HDM_OFT_ColorConversions.OFT_CIELab(l_referenceValues, referenceWhite);
+l_transformedCurLab = HDM_OFT_ColorConversions.OFT_CIELab(l_transformedCurrentValues, referenceWhite);
 
-if strcmp(i_ReferenceDomain, HDM_OFT_IDT_ReferenceCamera.CIEType())
-    
-    l_refLab = HDM_OFT_ColorConversions.OFT_CIELab(l_referenceValues', referenceWhite);
-    l_transformedCurLab = HDM_OFT_ColorConversions.OFT_CIELab(l_transformedCurrentValues', referenceWhite);
-    
-    %% compute delta E 
+%% compute delta E 
 
-    l_deltaE2000 = deltaE2000(l_refLab', l_transformedCurLab'); 
-    
-    l_meanDeltaE2000 = mean(l_deltaE2000);
-    l_stdDevDeltaE2000 = std(l_deltaE2000);
-    
-end
+l_deltaE2000 = deltaE2000(l_refLab', l_transformedCurLab'); 
+
+l_cnames = {'L ref','a ref','b ref','L','a','b','delta E 2000'};
+l_patchIndex = 1 : size(l_refLab, 2);
+l_patchIndex = num2cell(l_patchIndex, size(l_refLab, 2));
+HDM_OFT_UI_PlotTableAndSave...
+    ([l_refLab', l_transformedCurLab', l_deltaE2000'], 'Training Set Ref vs. Transformed', l_cnames, l_patchIndex);
+
+l_meanDeltaE2000 = mean(l_deltaE2000);
+l_stdDevDeltaE2000 = std(l_deltaE2000);  
 
 %% write idt profile file and append results to statistics
 HDM_OFT_Utils.OFT_DispTitle('write idt profile file and append results to statistics');
 OFT_IDT_File = HDM_OFT_WriteIDTProfileAndStatEntry...
     (i_CurrentObserver, OFT_resnormBEstimation, OFT_IDT_B, OFT_IDT_b,...
-    i_NeutralsCompensation, i_ReferenceIlluminantSpectrum, i_ErrorMinimizationDomain, l_meanDeltaE2000, l_stdDevDeltaE2000);
+    i_NeutralsCompensation, i_ReferenceIlluminantSpectrum, referenceWhite, i_ReferenceDomain, i_ErrorMinimizationDomain, l_meanDeltaE2000, l_stdDevDeltaE2000);
 
 %%white check
 
@@ -175,7 +218,7 @@ HDM_OFT_Utils.OFT_DispTitle('idt profile successfully created');
 
 end
 
-function [OFT_PatchSetReferenceTristimuli, referenceWhite] = HDM_OFT_ComputeReferenceTristimuli4PatchSet...
+function [o_PatchSetReferenceTristimuli, o_referenceWhite] = HDM_OFT_ComputeReferenceTristimuli4PatchSet...
     (i_ReferenceObserver, ...
     i_ReferenceIlluminant_Spectrum_1nm_CIE31Range, ...
     i_ObjectReflectances_SpectralCurve,...
@@ -233,26 +276,23 @@ HDM_OFT_UI_PlotAndSave([i_ReferenceIlluminant_Spectrum_1nm_CIE31Range(1,:); ...
 OFT_Illumination_Scale=1;
 OFT_Illumination_Norm=1;
 
-OFT_Xw=OFT_Illumination_Scale*trapz(OFT_CIEStandardObserver_SpectralCurves(2,:) .* i_ReferenceIlluminant_Spectrum_1nm_CIE31Range(2,:))/OFT_Illumination_Norm;
-OFT_Yw=OFT_Illumination_Scale*trapz(OFT_CIEStandardObserver_SpectralCurves(3,:) .* i_ReferenceIlluminant_Spectrum_1nm_CIE31Range(2,:))/OFT_Illumination_Norm;
-OFT_Zw=OFT_Illumination_Scale*trapz(OFT_CIEStandardObserver_SpectralCurves(4,:) .* i_ReferenceIlluminant_Spectrum_1nm_CIE31Range(2,:))/OFT_Illumination_Norm;
+OFT_Xw = OFT_Illumination_Scale*trapz(OFT_CIEStandardObserver_SpectralCurves(2,:) .* i_ReferenceIlluminant_Spectrum_1nm_CIE31Range(2,:))/OFT_Illumination_Norm;
+OFT_Yw = OFT_Illumination_Scale*trapz(OFT_CIEStandardObserver_SpectralCurves(3,:) .* i_ReferenceIlluminant_Spectrum_1nm_CIE31Range(2,:))/OFT_Illumination_Norm;
+OFT_Zw = OFT_Illumination_Scale*trapz(OFT_CIEStandardObserver_SpectralCurves(4,:) .* i_ReferenceIlluminant_Spectrum_1nm_CIE31Range(2,:))/OFT_Illumination_Norm;
 
 OFT_WwUnscaled=[OFT_Xw,OFT_Yw,OFT_Zw]';
-OFT_Ww=100*(OFT_WwUnscaled./OFT_WwUnscaled(2));
-HDM_OFT_Utils.OFT_DispTitle('Daylight XYZ plausibility check');
-disp(OFT_Ww);
+OFT_Ww=OFT_WwUnscaled;
 
+HDM_OFT_Utils.OFT_DispTitle('White XYZ plausibility check');
+disp(OFT_Ww);
 OFT_WwxyY=[OFT_Xw/(OFT_Xw + OFT_Yw + OFT_Zw),OFT_Yw/(OFT_Xw + OFT_Yw + OFT_Zw),OFT_Zw/(OFT_Xw + OFT_Yw + OFT_Zw)]';
 disp(OFT_WwxyY);
 
-OFT_PatchSetTristimuliNorm=100*(OFT_PatchSetTristimuli./OFT_WwUnscaled(2));
-
-OFT_PatchSetTristimuli=OFT_PatchSetTristimuliNorm;
-referenceWhite=OFT_Ww;
+o_referenceWhite = OFT_w;
 
 %% 4.7.4 adjust tristimuli of training colours to compensate scene adopted
 HDM_OFT_Utils.OFT_DispSubTitle('4.7.4 adjust tristimuli of training colours to compensate scene adopted');
-OFT_PatchSetReferenceTristimuli=...
+o_PatchSetReferenceTristimuli=...
     HDM_OFT_ColorNeutralCompensations.OFT_CompensateTristimuliForDifferentWhite(OFT_NeutralsCompensation, OFT_PatchSetTristimuli, OFT_Ww, OFT_w);
 
 end
@@ -291,26 +331,38 @@ function [OFT_PatchSetCameraTristimuli, OFT_IDT_b] = HDM_OFT_ComputeCurrentTrist
 
     %% 4.7.5 camera system white balance factors
     HDM_OFT_Utils.OFT_DispTitle('4.7.5 camera system white balance factors');
-
-    OFT_CAM_Xw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(2,:) .* OFT_TargetIlluminant_Spectrum_1nm_CIE31Range(2,:));
-    OFT_CAM_Yw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(3,:) .* OFT_TargetIlluminant_Spectrum_1nm_CIE31Range(2,:));
-    OFT_CAM_Zw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(4,:) .* OFT_TargetIlluminant_Spectrum_1nm_CIE31Range(2,:));
-
-    OFT_CAM_WwUnscaled = [OFT_CAM_Xw;OFT_CAM_Yw;OFT_CAM_Zw];               
-    OFT_IDT_b = 1./OFT_CAM_WwUnscaled;
-    OFT_IDT_b = OFT_IDT_b./OFT_IDT_b(2);
-
-    %% 4.7.6 compute white balanced linearized camera system response values of training colours
+    
     HDM_OFT_Utils.OFT_DispTitle('4.7.6 compute white balanced linearized camera system response values of training colours');
     [OFT_PatchSetCameraTristimuli,OFT_PatchSetCameraTristimuli_ColorValueParts]=...
             HDM_OFT_TristimuliCreator.CreateFromSpectrum(...
                     OFT_CameraSpectralResponse_1nm_CIE31Range,...
-                    OFT_Illuminant_Spectrum_1nm_CIE31Range,...
+                    ...
+                    ... % ACES like: 
+                    ... %HDM_OFT_GetIlluminantSpectrum('E'), ...
+                    ...
+                    ... %OFT modification
+                    OFT_Illuminant_Spectrum_1nm_CIE31Range,... 
+                    ...
                     OFT_PatchSet_SpectralCurve);         
 
+    % ACES like: 
+    OFT_CAM_Xw = trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(2,:) .* OFT_TargetIlluminant_Spectrum_1nm_CIE31Range(2,:));
+    OFT_CAM_Yw = trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(3,:) .* OFT_TargetIlluminant_Spectrum_1nm_CIE31Range(2,:));
+    OFT_CAM_Zw = trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(4,:) .* OFT_TargetIlluminant_Spectrum_1nm_CIE31Range(2,:));
+
+    % OFT modification
+	OFT_CAM_Xw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(2,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:));
+	OFT_CAM_Yw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(3,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:));
+	OFT_CAM_Zw=trapz(OFT_CameraSpectralResponse_1nm_CIE31Range(4,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:));
+
+    OFT_CAM_WwUnscaled = [OFT_CAM_Xw;OFT_CAM_Yw;OFT_CAM_Zw];               
+    OFT_IDT_b = 1./OFT_CAM_WwUnscaled;
+
+    %% 4.7.6 compute white balanced linearized camera system response values of training colours
+    
     OFT_PatchSetCameraTristimuli3 = OFT_PatchSetCameraTristimuli;
     OFT_PatchSetCameraTristimuliW = OFT_PatchSetCameraTristimuli3 .* repmat(OFT_IDT_b,[1,size(OFT_PatchSetCameraTristimuli3,2)]);
-
+    
     OFT_PatchSetCameraTristimuli=OFT_PatchSetCameraTristimuliW;
 
 end

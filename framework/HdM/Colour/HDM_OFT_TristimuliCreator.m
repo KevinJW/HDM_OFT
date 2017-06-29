@@ -6,7 +6,21 @@ classdef HDM_OFT_TristimuliCreator
                 OFT_Illuminant_Spectrum_1nm_CIE31Range,...
                 OFT_PatchSet_SpectralCurve)
             
-            OFT_Illumination_Norm=1;%//!!!trapz(OFT_Observer_SpectralCurve_y .* OFT_Illuminant_Spectrum_1nm_CIE31Range);
+            OFT_Illumination_Norm = 1; 
+            
+            if OFT_Illuminant_Spectrum_1nm_CIE31Range=='E'
+                
+                OFT_Illumination_Norm = 1;
+                
+            else
+                
+                if size(OFT_PatchSet_SpectralCurve, 1) > 18 
+                    
+                    OFT_Illumination_Norm = 1;%trapz(OFT_Observer_SpectralCurves(3,:) .* OFT_Illuminant_Spectrum_1nm_CIE31Range(2,:));
+                
+                end
+            
+            end
             OFT_Illumination_Scale=1;%//!!!100
 
             %OFT_Illumination_Norm=trapz(OFT_Observer_SpectralCurve_y .* OFT_Illuminant_Spectrum_1nm_CIE31Range);

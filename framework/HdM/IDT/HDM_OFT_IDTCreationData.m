@@ -32,6 +32,8 @@ classdef HDM_OFT_IDTCreationData
         IDTCreationConstraints_In_ErrorMinimizationDomain;
         IDTCreationConstraints_In_PatchSet;
         
+        IDTCreationConstraints_In_AdditionalPatchSets;
+        
         IDTCreationConstraints_Out_IDTFiles;
         
         Evaluation_In_TestImage;

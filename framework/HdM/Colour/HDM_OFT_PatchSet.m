@@ -62,9 +62,50 @@ classdef HDM_OFT_PatchSet
 
                 OFT_BabelColor_GM_CCh_SpectralCurve=oft_ndata;
 
+            elseif(strfind(lower(OFT_MeasuredPatchFileName), '.txt'))
+                
+                l_table = HDM_OFT_SpectrumExportImport.read_mixed_csv(OFT_MeasuredPatchFileName, '\t');
+                
+                l_t1 = cellfun(@(s) {strrep(s, 'nm', '')},l_table(:, :));
+                l_t2 = cellfun(@(s) {strrep(s, ',', '.')},l_t1(:, :));
+                l_mt = str2double(l_t2);
+
+                [l_posLr, l_posLc] = find(l_mt <= 400);
+                [l_posUr, l_posUc] = find(l_mt >= 700);
+
+                if l_posLc(1) == 1 && l_posUc(1) == 1
+
+                    l_mt = l_mt';
+
+                end
+
+                l_table = l_mt;                  
+
+                if isnan(l_table(1, 2))
+
+                    l_table = l_table(2 : end, :);                   
+
+                elseif isnan(l_table(2, 1))
+
+                    l_table = l_table(:, 2 : end);
+
+                elseif isnan(l_table(1, 1))
+
+                    l_table = l_table(:, 2 : end);
+
+                end
+
+                if max(l_table(2 : end, :)) > 1
+                    
+                    l_table(2 : end, :) = l_table(2 : end, :) / 100;
+                    
+                end
+                
+                OFT_BabelColor_GM_CCh_SpectralCurve = l_table;               
+                    
             else
 
-                OFT_BabelColor_GM_CCh_SpectralCurve=csvread(OFT_MeasuredPatchFileName);
+                OFT_BabelColor_GM_CCh_SpectralCurve = csvread(OFT_MeasuredPatchFileName);
 
             end
             
@@ -74,6 +115,7 @@ classdef HDM_OFT_PatchSet
             for cur=2:size(OFT_BabelColor_GM_CCh_SpectralCurve,1)
                 
                 curInterpol=interp1(OFT_BabelColor_GM_CCh_SpectralCurve(1,:),OFT_BabelColor_GM_CCh_SpectralCurve(cur,:),360:1:830,'pchip',0);
+                
                 o_PatchSet_SpectralCurve(cur,:)=curInterpol;
                 
             end
