@@ -1,7 +1,7 @@
-function o_IDTProfileFileName = HDM_OFT_WriteIDTProfileAndStatEntry...
+function [o_IDTProfileFileName, o_ICCProfileFileName] = HDM_OFT_WriteProfileAndStatEntry...
     (i_MeasuredCameraResponseFileName, i_resnormBEstimation, i_IDT_B, i_IDT_b,...
     i_NeutralsCompensation, i_IlluminantSpectrum, i_IlluminantWhitePoint, i_ReferenceDomain, i_ErrorMinimizationDomain, ...
-    i_meanDeltaE2000, i_stdDevDeltaE2000)
+    i_meanDeltaE2000, i_stdDevDeltaE2000, i_IDTTaskData)
 
     l_Env = HDM_OFT_InitEnvironment();
 
@@ -22,8 +22,8 @@ function o_IDTProfileFileName = HDM_OFT_WriteIDTProfileAndStatEntry...
 
     fin = fopen(strcat(l_Env.OFT_ConstraintsPath,'/IDT_Template.txt'));
     idtCreationDateStr=datestr(now,'yyyy-mm-dd_HH.MM.SS.FFF');
-    OFT_IDT_File=strcat(l_Env.OFT_ProcessPath,'/IDT_',IlluminantStr,'_',idtCreationDateStr,'.ctl');
-    fout = fopen(OFT_IDT_File,'wt');
+    l_IDT_File=strcat(l_Env.OFT_ProcessPath,'/IDT_',IlluminantStr,'_',idtCreationDateStr,'.ctl');
+    fout = fopen(l_IDT_File,'wt');
 
     if ~exist(strcat(l_Env.OFT_StatisticsPath,'/IDTStat.csv'),'file')
         foutStat = fopen(strcat(l_Env.OFT_StatisticsPath,'/IDTStat.csv'),'wt');
@@ -102,11 +102,12 @@ function o_IDTProfileFileName = HDM_OFT_WriteIDTProfileAndStatEntry...
     
     %%write icc
     
-    if 0 %HDM_OFT_IDT_ReferenceCamera.CIEType() == i_ReferenceDomain
+    if 1 %HDM_OFT_IDT_ReferenceCamera.CIEType() == i_ReferenceDomain
         
         l_fileICC=strcat(l_Env.OFT_ProcessPath,'/IDT_', IlluminantStr,'_',idtCreationDateStr,'.icc ');
-        l_bin = '/Volumes/Data/User/fuchs/Development/WriteICC/build-Write2ICC-Desktop_Qt_5_8_0_clang_64bit-Debug/Write2ICC ';
-
+        
+        l_bin = 'Write2ICC ';
+        
         l_IDT_b = i_IDT_b ./ min(i_IDT_b);
         l_IDT_b = l_IDT_b ./ l_IDT_b;
 
@@ -142,14 +143,30 @@ function o_IDTProfileFileName = HDM_OFT_WriteIDTProfileAndStatEntry...
             l_Mnc(1,1),l_Mnc(1,2),l_Mnc(1,3),...
             l_Mnc(2,1),l_Mnc(2,2),l_Mnc(2,3),...
             l_Mnc(3,1),l_Mnc(3,2),l_Mnc(3,3));
+        
+        l_manufacturer = sprintf(' -manufacturer "%s"', 'Vendor');
+        l_device = sprintf(' -device "%s"', i_IDTTaskData.Device_In_Camera);
+        
+        l_description=strcat('HdM OFT-', i_IDTTaskData.Device_In_Camera, '-', IlluminantStr,'-',idtCreationDateStr);
+        l_description = sprintf(' -description "%s"', l_description);
 
-        l_arg = [l_bin l_fileICC l_bStr l_MStr l_whiteStr l_MncStr];
+        l_arg = [l_bin l_fileICC l_bStr l_MStr l_whiteStr l_MncStr l_description l_device l_manufacturer];
         strcat(l_arg);
 
-        system(l_arg);
+        l_stat = system(l_arg);
 
-        l_fileICC4OSX = strcat('~/Library/ColorSync/Profiles', '/IDT_', IlluminantStr,'_',idtCreationDateStr,'.icc');
-        copyfile(l_fileICC, l_fileICC4OSX);
+        if l_stat == 0
+            
+            l_sysDir4UsrICC = '~/Library/ColorSync/Profiles';
+                
+            if 7==exist(l_sysDir4UsrICC,'dir')
+                
+                l_fileICC4OSX = strcat(l_sysDir4UsrICC, '/IDT_', IlluminantStr,'_',idtCreationDateStr,'.icc');
+                copyfile(l_fileICC, l_fileICC4OSX);
+            
+            end
+        
+        end
 
 
         %%
@@ -197,6 +214,8 @@ function o_IDTProfileFileName = HDM_OFT_WriteIDTProfileAndStatEntry...
 
     end
     
-    o_IDTProfileFileName=OFT_IDT_File;
+    o_ICCProfileFileName = l_fileICC;
+    
+    o_IDTProfileFileName = l_IDT_File;
 
 end

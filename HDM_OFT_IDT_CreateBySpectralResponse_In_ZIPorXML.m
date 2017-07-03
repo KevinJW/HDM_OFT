@@ -71,7 +71,7 @@ function HDM_OFT_IDT_CreateBySpectralResponse_In_ZIPorXML(OFT_In_ClientData, OFT
 
     OFT_ProgressLogger.LogUserMessage('compute IDT profiles');    
 
-    IDTTaskData.IDTCreationConstraints_Out_IDTFiles=HDM_OFT_IDT_ProfilesGeneration(IDTTaskData);
+    IDTTaskData.IDTCreationConstraints_Out_IDTFiles = HDM_OFT_IDT_ProfilesGeneration(IDTTaskData);
 
     for i=1:size(IDTTaskData.IDTCreationConstraints_Out_IDTFiles,2)
         copyfile(IDTTaskData.IDTCreationConstraints_Out_IDTFiles{i}, OFT_In_ServerOutDir);
