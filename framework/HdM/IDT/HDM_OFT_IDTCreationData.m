@@ -31,8 +31,10 @@ classdef HDM_OFT_IDTCreationData
         IDTCreationConstraints_In_SceneIllumination;
         IDTCreationConstraints_In_ErrorMinimizationDomain;
         IDTCreationConstraints_In_PatchSet;
+        IDTCreationConstraints_In_PatchSet_Illuminant;
         
         IDTCreationConstraints_In_AdditionalPatchSets;
+        IDTCreationConstraints_In_AdditionalPatchSets_Illuminant;
         
         IDTCreationConstraints_Out_IDTFiles;
         

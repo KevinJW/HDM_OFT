@@ -28,9 +28,36 @@ if not(isempty(i_IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets))
     
     l_objectReflectances = HDM_OFT_PatchSet.GetPatchSpectra(i_IDTTaskData.IDTCreationConstraints_In_PatchSet);
     
+    if not(strcmp(i_IDTTaskData.IDTCreationConstraints_In_PatchSet_Illuminant, 'E'))
+        
+        l_illuminantSpectrum4PatchSet = HDM_OFT_GetIlluminantSpectrum(i_IDTTaskData.IDTCreationConstraints_In_PatchSet_Illuminant);
+
+        for cur = 2 : size(l_objectReflectances, 1)
+
+            l_objectReflectances(cur) = l_objectReflectances(cur) ./ l_illuminantSpectrum4PatchSet(2);
+
+        end
+
+    end
+    
     for cur = 1 : size(i_IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets, 1)
         
         l_curObjectReflectances = HDM_OFT_PatchSet.GetPatchSpectra(i_IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{cur});
+        
+        l_illuminatStr = i_IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets_Illuminant{cur};
+        if not(strcmp(l_illuminatStr, 'E'))
+            
+            l_illuminantSpectrum4PatchSet = HDM_OFT_GetIlluminantSpectrum(l_illuminatStr);
+            
+            for icur = 2 : size(l_curObjectReflectances, 1)
+                
+                l_curObjectReflectances(icur) = l_curObjectReflectances(icur) ./ l_illuminantSpectrum4PatchSet(2);
+                               
+            end
+                                  
+        end
+        
+        l_curObjectReflectances(isnan(l_curObjectReflectances)) = 0; 
         
         l_objectReflectances = [l_objectReflectances; l_curObjectReflectances(2 : end, :)];
         
@@ -40,11 +67,25 @@ else
     
     l_objectReflectances = i_IDTTaskData.IDTCreationConstraints_In_PatchSet;
     
+    if not(strcmp(i_IDTTaskData.IDTCreationConstraints_In_PatchSet_Illuminant, 'E'))
+        
+        l_objectReflectances = HDM_OFT_PatchSet.GetPatchSpectra(i_IDTTaskData.IDTCreationConstraints_In_PatchSet);
+            
+        l_illuminantSpectrum4PatchSet = HDM_OFT_GetIlluminantSpectrum(i_IDTTaskData.IDTCreationConstraints_In_PatchSet_Illuminant);
+
+        for cur = 2 : size(l_objectReflectances, 1)
+
+            l_objectReflectances(cur) = l_objectReflectances(cur) ./ l_illuminantSpectrum4PatchSet(2);
+
+        end
+
+    end
+    
 end
 
 HDM_OFT_Utils.OFT_DispTitle('start IDT profile creation');
 
-for curIlluminandIndex=1:size(OFT_Illuminations,2)
+for curIlluminandIndex=1:size(OFT_Illuminations, 2)
     
     l_targetIlluminantStr=OFT_Illuminations{curIlluminandIndex};
     HDM_OFT_Utils.OFT_DispSubTitle(strcat('create idt profile for illuminant: ', l_targetIlluminantStr));

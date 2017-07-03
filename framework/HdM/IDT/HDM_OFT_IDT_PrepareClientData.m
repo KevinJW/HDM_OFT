@@ -99,9 +99,10 @@ end
 
 IDTTaskData.IDTCreationConstraints_In_ErrorMinimizationDomain=GetXMLNodeVal(thisListitem,'ErrorMinimizationDomain');
   
-l_PatchSets = GetXMLNodeValList(thisListitem,'PatchSet');
+[l_PatchSets, l_PatchSets_Illuminants] = GetXMLNodeValList(thisListitem,'PatchSet', 'Illuminant', 'E');
 
 IDTTaskData.IDTCreationConstraints_In_PatchSet = cell2mat(l_PatchSets(1));
+IDTTaskData.IDTCreationConstraints_In_PatchSet_Illuminant = cell2mat(l_PatchSets_Illuminants(1));
 
 %file path creation for sets
 if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_PatchSet), '.csv')) ...
@@ -112,28 +113,23 @@ if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_PatchSet), '.cs
     IDTTaskData.IDTCreationConstraints_In_PatchSet =  strcat(OFT_ClientDataDir, IDTTaskData.IDTCreationConstraints_In_PatchSet);
 end
 
+if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_PatchSet_Illuminant), '.csv')) ...
+        || ...
+        ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_PatchSet_Illuminant), '.txt')) ...
+        || ...
+        ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_PatchSet_Illuminant), '.xls')))
+    IDTTaskData.IDTCreationConstraints_In_PatchSet_Illuminant =  strcat(OFT_ClientDataDir, IDTTaskData.IDTCreationConstraints_In_PatchSet_Illuminant);
+end
+
+IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets = {};
+IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets_Illuminant = {};
+
 if size(l_PatchSets, 1) > 1
 
-    IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets = {};
-
-    IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets(1, 1) = l_PatchSets(2);
-
-    %file path creation for sets
-    if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{1}), '.csv')) ...
-            || ...
-            ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{1}), '.txt')) ...
-            || ...
-            ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{1}), '.xls')))
-
-        IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{1} =  ...
-            strcat(OFT_ClientDataDir, IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{1});
-
-    end
-
-    for cur = 3 : size(l_PatchSets, 1)
+    for cur = 2 : size(l_PatchSets, 1)
 
         IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets(cur - 1, 1) = l_PatchSets(cur);
-        
+
         %file path creation for sets
         if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{cur - 1}), '.csv')) ...
                 || ...
@@ -143,6 +139,24 @@ if size(l_PatchSets, 1) > 1
             
             IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{cur - 1} =  ...
                 strcat(OFT_ClientDataDir, IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets{cur - 1});
+        
+        end
+
+    end
+    
+    for cur = 2 : size(l_PatchSets, 1)
+
+        IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets_Illuminant(cur - 1, 1) = l_PatchSets_Illuminants(cur);
+        
+        %file path creation for sets
+        if (~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets_Illuminant{cur - 1}), '.csv')) ...
+                || ...
+                ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets_Illuminant{cur - 1}), '.txt')) ...
+                || ...
+                ~isempty(strfind(lower(IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets_Illuminant{cur - 1}), '.xls')))
+            
+            IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets_Illuminant{cur - 1} =  ...
+                strcat(OFT_ClientDataDir, IDTTaskData.IDTCreationConstraints_In_AdditionalPatchSets_Illuminant{cur - 1});
         
         end
 
@@ -191,19 +205,37 @@ function retVal=GetXMLNodeVal(thisListitem,nodeName)
 
 end
 
-function retVal=GetXMLNodeValList(thisListitem,nodeName)
+function [retVal, retValAttribute] = GetXMLNodeValList(i_thisListitem, i_nodeName, i_attribute, i_defaultVal4Attribute)
 
     try
 
-        thisList = thisListitem.getElementsByTagName(nodeName);
+        thisList = i_thisListitem.getElementsByTagName(i_nodeName);
+        
         retVal = {};
         retVal{1, 1} = char(thisList.item(0).getFirstChild.getData);
+        
+        retValAttribute = {};
+        retValAttribute{1, 1} = char(thisList.item(0).getAttribute(i_attribute)); 
+        if isempty(retValAttribute{1, 1})
+            
+            retValAttribute{1, 1} = i_defaultVal4Attribute;
+            
+        end
+        
         l_cur = 1;
         
         while not(isempty(thisList.item(l_cur)))
               
             retVal{l_cur + 1, 1} = char(thisList.item(l_cur).getFirstChild.getData);
-        
+            
+            retValAttribute{l_cur + 1, 1} = char(thisList.item(l_cur).getAttribute(i_attribute));
+            
+            if isempty(retValAttribute{l_cur + 1, 1})
+            
+                retValAttribute{l_cur + 1, 1} = i_defaultVal4Attribute;
+
+            end
+            
             l_cur = l_cur + 1;
         
         end
