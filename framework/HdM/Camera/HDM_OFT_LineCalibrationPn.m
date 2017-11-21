@@ -135,7 +135,8 @@ HDM_OFT_Utils.OFT_DispSubTitle('read camera line spectrum image');
 
 %% find rect mask for spectrum region
 l_maskImage = medfilt2(rgb2gray(HDM_OFT_ImageExportImport.ImportImage(i_maskImage)));
-l_maskImage1 = im2bw(l_maskImage, 0.005);%//!!!
+l_threshold = 0.005;%2 * (double(median(l_maskImage(20,:)))/double((1.0*2^16)));
+l_maskImage1 = im2bw(l_maskImage, l_threshold);%//!!!
 
 if usejava('Desktop')
 	subplot(2,2,2),imshow(l_maskImage1);
@@ -220,8 +221,8 @@ if usejava('Desktop')
 
 end
 
-OFT_SpectrumROI_Top = round(l_boundingBox4MaxArea(2));
-OFT_SpectrumROI_Bottom = round(l_boundingBox4MaxArea(2) + l_boundingBox4MaxArea(4));
+OFT_SpectrumROI_Top = round(l_boundingBox4MaxArea(2)) + 1;
+OFT_SpectrumROI_Bottom = round(l_boundingBox4MaxArea(2) + l_boundingBox4MaxArea(4)) - 1;
 
 OFT_Spectrum_MeanOfRows = zeros(1, size(OFT_SpectrumImageGray, 2));
 OFT_Spectrum_MeanOfRowsR = zeros(1, size(OFT_SpectrumImageGray, 2));
@@ -246,25 +247,48 @@ s2 = (OFT_Spectrum_BottomRow - mean(OFT_Spectrum_BottomRow)) / std(OFT_Spectrum_
 % subplot(2,2,2),imshow(OFT_SpectrumImageIntensity);
 %//!!!subplot(2,2,3),imshow(imcomplement(imrotate(OFT_SpectrumImageIntensity,OFT_LineCaliTilt)));
 
+l_maxPerRow = zeros(5, OFT_SpectrumROI_Bottom - OFT_SpectrumROI_Top + 1);
+
+l_maxPerRow(1,:) = 1 : size(l_maxPerRow, 2);
+
 for R = OFT_SpectrumROI_Top : OFT_SpectrumROI_Bottom
+    
+    l_index = R - OFT_SpectrumROI_Top + 1;
+    
+    l_maxPerRow(1, l_index) = R;
+    
+    if R < size(OFT_SpectrumImageGray, 1)/2 - 50 || R > size(OFT_SpectrumImageGray, 1)/2 + 50
+        continue;
+    end
+    
+    l_maxPerRow(2, l_index) = max(OFT_SpectrumImageGray(R,:));
     
     cur = OFT_SpectrumImageGray(R,:);
     add = OFT_Spectrum_MeanOfRows(1,:);
     OFT_Spectrum_MeanOfRows = (double(add) + double(cur));
     
+    l_maxPerRow(3, l_index) = max(OFT_SpectrumImageR(R,:));
+    
     cur = OFT_SpectrumImageR(R,:);
     add = OFT_Spectrum_MeanOfRowsR(1,:);
     OFT_Spectrum_MeanOfRowsR = (double(add) + double(cur));
     
+    l_maxPerRow(4, l_index) = max(OFT_SpectrumImageG(R,:));
+    
     cur = OFT_SpectrumImageG(R,:);
     add = OFT_Spectrum_MeanOfRowsG(1,:);
     OFT_Spectrum_MeanOfRowsG = (double(add) + double(cur));
+    
+    l_maxPerRow(5, l_index) = max(OFT_SpectrumImageB(R,:));
     
     cur = OFT_SpectrumImageB(R,:);
     add = OFT_Spectrum_MeanOfRowsB(1,:);
     OFT_Spectrum_MeanOfRowsB = (double(add) + double(cur));
     
 end
+
+figure('Name','Max Distribution')
+plot(l_maxPerRow(1,:),l_maxPerRow(2:end,:))
 
 o_lineR = OFT_Spectrum_MeanOfRowsR;
 o_lineG = OFT_Spectrum_MeanOfRowsG;
@@ -381,7 +405,19 @@ l_OFT_Spectrum_MeanOfRowsFiltered = sgolayfilt(OFT_Spectrum_MeanOfRows, 3, 11);
 width=size(OFT_SpectrumImageGray,2);    
 OFT_SpectrumImage_peak_locationFlipped=(-1*OFT_SpectrumImage_peak_locationFlipped)+width;
 
-OFT_SpectrumImage_peak_location = 0.5 * (OFT_SpectrumImage_peak_location + fliplr(OFT_SpectrumImage_peak_locationFlipped));
+OFT_SpectrumImage_peak_locationFlippedReverse = fliplr(OFT_SpectrumImage_peak_locationFlipped);
+
+l_maxIndex = size(OFT_SpectrumImage_peak_location,2);
+
+if l_maxIndex > size(OFT_SpectrumImage_peak_locationFlippedReverse,2);
+    
+    l_maxIndex = size(OFT_SpectrumImage_peak_locationFlippedReverse,2);
+    
+end
+
+OFT_SpectrumImage_peak_value = OFT_SpectrumImage_peak_value(1,1:l_maxIndex);
+
+OFT_SpectrumImage_peak_location = 0.5 * (OFT_SpectrumImage_peak_location(1,1:l_maxIndex) + OFT_SpectrumImage_peak_locationFlippedReverse(1,1:l_maxIndex));
 l_break = 0;
 
 while l_break == 0
@@ -518,11 +554,11 @@ hold on
 
 plot(l_OFT_Spectrum_MeanOfRowsFiltered)
 
-for cur = 1 : size(OFT_SpectrumImage_peak_location, 2)
+for cur = 1 : size(x, 2)
     
     hold on
     
-    plot([OFT_SpectrumImage_peak_location(1, cur) OFT_SpectrumImage_peak_location(1, cur)],ylim)
+    plot([x(1, cur) x(1, cur)],ylim)
         
 end
 

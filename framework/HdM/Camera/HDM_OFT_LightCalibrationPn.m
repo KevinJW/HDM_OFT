@@ -167,6 +167,11 @@ OFT_Spectrum_MeanOfRows=zeros(1,OFT_SpectrumImageWidth,OFT_SpectrumImageNofChann
 %//!!!OFT_SpectrumImage=imrotate(OFT_SpectrumImage,1,'crop');
 
 for R=OFT_SpectrumROI_Top:OFT_SpectrumROI_Bottom
+    
+    if R < size(OFT_SpectrumImage, 1)/2 - 50 || R > size(OFT_SpectrumImage, 1)/2 + 50
+        continue;
+    end
+    
     cur=OFT_SpectrumImage(R,:,:);
     add=OFT_Spectrum_MeanOfRows(1,:,:);
     OFT_Spectrum_MeanOfRows=(double(add)+double(cur));
@@ -189,8 +194,16 @@ o_lightR = OFT_Spectrum_MeanOfRows(1,:,1);
 o_lightG = OFT_Spectrum_MeanOfRows(1,:,2);
 o_lightB = OFT_Spectrum_MeanOfRows(1,:,3);
 
-OFT_first= round(l_boundingBox4MaxArea(1, 1));
-OFT_last = round(l_boundingBox4MaxArea(1, 1) + l_boundingBox4MaxArea(1, 3));
+OFT_first= round(l_boundingBox4MaxArea(1, 1)) + 1;
+OFT_last = round(l_boundingBox4MaxArea(1, 1) + l_boundingBox4MaxArea(1, 3)) - 1;
+
+if OFT_first < 1
+    OFT_first = 1;
+end
+
+if OFT_last > size(OFT_In_Pixel2WavelengthLookUp, 2)
+    OFT_last = size(OFT_In_Pixel2WavelengthLookUp, 2);
+end
 
 OFT_In_Pixel2WavelengthLookUp=OFT_In_Pixel2WavelengthLookUp(OFT_first:OFT_last);
 OFT_Spectrum_MeanOfRows=OFT_Spectrum_MeanOfRows(1,OFT_first:OFT_last,:);
