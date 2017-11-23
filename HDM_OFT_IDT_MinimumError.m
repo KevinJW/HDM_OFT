@@ -281,7 +281,7 @@ OFT_Yw = OFT_Illumination_Scale*trapz(OFT_CIEStandardObserver_SpectralCurves(3,:
 OFT_Zw = OFT_Illumination_Scale*trapz(OFT_CIEStandardObserver_SpectralCurves(4,:) .* i_ReferenceIlluminant_Spectrum_1nm_CIE31Range(2,:))/OFT_Illumination_Norm;
 
 OFT_WwUnscaled=[OFT_Xw,OFT_Yw,OFT_Zw]';
-OFT_Ww=OFT_WwUnscaled;
+OFT_Ww=OFT_WwUnscaled ./ OFT_Yw;
 
 HDM_OFT_Utils.OFT_DispTitle('White XYZ plausibility check');
 disp(OFT_Ww);

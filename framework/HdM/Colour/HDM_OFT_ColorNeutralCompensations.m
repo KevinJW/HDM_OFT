@@ -165,8 +165,10 @@ classdef HDM_OFT_ColorNeutralCompensations
 
     %to be clarified if elementwise is needed
     %based on LMS and vanKries trafo
+    
+    l_catCoreWBal = diag(rgbMod2./rgbMod1);
 
-    out=inv(IDT_A) * diag(rgbMod2./rgbMod1) * IDT_A;
+    out=inv(IDT_A) * l_catCoreWBal * IDT_A;
 
     end
         

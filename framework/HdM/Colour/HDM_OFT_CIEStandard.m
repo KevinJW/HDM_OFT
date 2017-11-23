@@ -5,7 +5,7 @@ classdef HDM_OFT_CIEStandard
                 GetStandardObserverCurves(OFT_In_StandardObserverType)
         
             
-        if size(OFT_In_StandardObserverType, 1) == 4
+        if exist('OFT_In_StandardObserverType','var') && size(OFT_In_StandardObserverType, 1) == 4
     
             o_StandardObserverCurves = OFT_In_StandardObserverType;
             
@@ -48,14 +48,6 @@ classdef HDM_OFT_CIEStandard
 
             HDM_OFTP_Utils.OFT_DispSubTitle('not implemented');
 
-        end    
-        
-        if(exist('default','var')==0)
-            figure
-            plot(OFT_CIE31_WaveLength,OFT_StandardObserver_x,OFT_CIE31_WaveLength,OFT_StandardObserver_y,OFT_CIE31_WaveLength,OFT_StandardObserver_z)
-            xlabel('wavelength in nm')
-            ylabel('relative response')
-            title(strcat('Observer Curves'));
         end        
         
         end
